@@ -724,9 +724,9 @@ case 'video': {
     const yts = require('yt-search');
     const axios = require('axios');
 
-    // Extract YouTube id
+    // Extract YouTube ID from link
     function extractYouTubeId(url) {
-        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\\?v=|embed\\/|v\\/|shorts\\/)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})/;
         const match = url.match(regex);
         return match ? match[1] : null;
     }
@@ -737,25 +737,26 @@ case 'video': {
         return input;
     }
 
+    // Read text or caption from user
     const raw = msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption ||
         msg.message?.videoMessage?.caption || '';
 
     if (!raw || raw.trim() === '') {
-        await socket.sendMessage(sender, { text: '*`Need YouTube URL or Title`*' });
+        await socket.sendMessage(sender, { text: '*`Please provide a YouTube URL or Title`*' });
         break;
     }
 
     const query = raw.trim();
-    const format = '360'; // default 360p quality
+    const format = '144'; // default 144p
 
     // Load bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
     let botName = cfg.botName || 'CHAMA MINI BOT AI';
 
-    // Fake quoted card
+    // fake quoted contact
     const botMention = {
         key: {
             remoteJid: "status@broadcast",
@@ -778,11 +779,11 @@ END:VCARD`
     };
 
     try {
-        // react and send "searching..."
+        // React and show loading message
         await socket.sendMessage(sender, { react: { text: "🔎", key: msg.key } });
-        await socket.sendMessage(sender, { text: "📡 *Searching & Preparing Download...*\nPlease wait a few seconds..." }, { quoted: botMention });
+        await socket.sendMessage(sender, { text: "📡 *Searching Video...*\nPlease wait a moment..." }, { quoted: botMention });
 
-        // find YouTube video
+        // Find video URL
         let videoUrl;
         if (extractYouTubeId(query)) {
             videoUrl = convertYouTubeLink(query);
@@ -790,37 +791,30 @@ END:VCARD`
             const search = await yts(query);
             const first = (search?.videos || [])[0];
             if (!first) {
-                await socket.sendMessage(sender, { text: '*`No results found for that title`*' }, { quoted: botMention });
+                await socket.sendMessage(sender, { text: '*`No results found`*' }, { quoted: botMention });
                 break;
             }
             videoUrl = first.url;
         }
 
-        // call API
+        // API call
         const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${format}`;
         const apiRes = await axios.get(apiUrl, { timeout: 20000 }).then(r => r.data).catch(() => null);
 
-        if (!apiRes || (!apiRes.downloadUrl && !apiRes.result?.download?.dlLink && !apiRes.result?.url)) {
-            await socket.sendMessage(sender, { text: '*`Video API returned no download link`*' }, { quoted: botMention });
+        if (!apiRes || !apiRes.downloadUrl) {
+            await socket.sendMessage(sender, { text: '*`No download link returned from API`*' }, { quoted: botMention });
             break;
         }
 
-        const downloadUrl = apiRes.downloadUrl || apiRes.result?.download?.dlLink || apiRes.result?.url;
-        const title = apiRes.title || apiRes.result?.title || 'Unknown Title';
-        const thumb = apiRes.thumbnail || apiRes.result?.thumbnail || null;
-        const quality = apiRes.quality || apiRes.format || apiRes.result?.quality || format;
+        const { title, thumbnail, downloadUrl, duration, quality } = apiRes;
 
-        // send thumbnail before downloading
-        if (thumb) {
-            await socket.sendMessage(sender, {
-                image: { url: thumb },
-                caption: `🎬 *${title}*\n📺 Quality: ${quality}p\n📥 Downloading video...`
-            }, { quoted: botMention });
-        } else {
-            await socket.sendMessage(sender, { text: `🎬 *${title}*\n📺 Quality: ${quality}p\n📥 Downloading video...` }, { quoted: botMention });
-        }
+        // Send preview
+        await socket.sendMessage(sender, {
+            image: { url: thumbnail },
+            caption: `🎬 *${title}*\n📺 Quality: ${quality}p\n🕒 Duration: ${duration}s\n\n📥 Downloading video...`
+        }, { quoted: botMention });
 
-        // send video directly
+        // Send video
         await socket.sendMessage(sender, {
             video: { url: downloadUrl },
             mimetype: "video/mp4",
@@ -830,8 +824,8 @@ END:VCARD`
         await socket.sendMessage(sender, { react: { text: "✅", key: msg.key } });
 
     } catch (err) {
-        console.error('Video auto-download error:', err);
-        await socket.sendMessage(sender, { text: "*`Error occurred while processing video`*" }, { quoted: botMention });
+        console.error("Video download error:", err);
+        await socket.sendMessage(sender, { text: "*`Error occurred while processing video download`*" }, { quoted: botMention });
     }
 
     break;
