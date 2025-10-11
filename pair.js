@@ -524,7 +524,7 @@ function setupCommandHandlers(socket, number) {
     // 🔹 Load bot name dynamically
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || 'SENU MINI BOT AI';
 
     // 🔹 Fake contact for quoting
     const shonux = {
@@ -634,7 +634,7 @@ case 'getdp': {
     }
     break;
 }
-  
+
 case 'ai':
 case 'chat':
 case 'gpt': {
@@ -656,7 +656,7 @@ case 'gpt': {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     // Load bot name from DB or default
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || 'SENU MINI BOT AI';
 
     // Meta AI mention for quote
     const metaQuote = {
@@ -737,7 +737,6 @@ case 'video': {
         return input;
     }
 
-    // get message text
     const raw = msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption ||
@@ -748,22 +747,15 @@ case 'video': {
         break;
     }
 
-    // default quality = 360
-    const parts = raw.trim().split(/\s+/);
-    let maybeFormat = parts[parts.length - 1];
-    let format = '360';
-    if (/^\d{3,4}$/.test(maybeFormat)) {
-        format = maybeFormat;
-        parts.pop();
-    }
-    const query = parts.join(' ');
+    const query = raw.trim();
+    const format = '360'; // default 360p quality
 
-    // load bot name
+    // Load bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
     let botName = cfg.botName || 'CHAMA MINI BOT AI';
 
-    // fake contact for quoted card
+    // Fake quoted card
     const botMention = {
         key: {
             remoteJid: "status@broadcast",
@@ -786,24 +778,27 @@ END:VCARD`
     };
 
     try {
-        // search or extract link
-        let videoUrl = null;
-        const maybeLink = convertYouTubeLink(query);
+        // react and send "searching..."
+        await socket.sendMessage(sender, { react: { text: "🔎", key: msg.key } });
+        await socket.sendMessage(sender, { text: "📡 *Searching & Preparing Download...*\nPlease wait a few seconds..." }, { quoted: botMention });
+
+        // find YouTube video
+        let videoUrl;
         if (extractYouTubeId(query)) {
-            videoUrl = maybeLink;
+            videoUrl = convertYouTubeLink(query);
         } else {
             const search = await yts(query);
             const first = (search?.videos || [])[0];
             if (!first) {
-                await socket.sendMessage(sender, { text: '*`No results found`*' }, { quoted: botMention });
+                await socket.sendMessage(sender, { text: '*`No results found for that title`*' }, { quoted: botMention });
                 break;
             }
             videoUrl = first.url;
         }
 
-        // download API call (default format = 360)
-        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${encodeURIComponent(format)}`;
-        const apiRes = await axios.get(apiUrl, { timeout: 15000 }).then(r => r.data).catch(() => null);
+        // call API
+        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${format}`;
+        const apiRes = await axios.get(apiUrl, { timeout: 20000 }).then(r => r.data).catch(() => null);
 
         if (!apiRes || (!apiRes.downloadUrl && !apiRes.result?.download?.dlLink && !apiRes.result?.url)) {
             await socket.sendMessage(sender, { text: '*`Video API returned no download link`*' }, { quoted: botMention });
@@ -811,78 +806,31 @@ END:VCARD`
         }
 
         const downloadUrl = apiRes.downloadUrl || apiRes.result?.download?.dlLink || apiRes.result?.url;
-        const title = apiRes.title || apiRes.result?.title || 'Unknown title';
+        const title = apiRes.title || apiRes.result?.title || 'Unknown Title';
         const thumb = apiRes.thumbnail || apiRes.result?.thumbnail || null;
-        const duration = apiRes.duration || apiRes.result?.duration || null;
         const quality = apiRes.quality || apiRes.format || apiRes.result?.quality || format;
 
-        const caption = `🎬 *Title:* ${title}
-⏱️ *Duration:* ${duration || 'N/A'} sec
-🔢 *Quality:* ${quality}p
-🔗 *Source:* ${videoUrl}
+        // send thumbnail before downloading
+        if (thumb) {
+            await socket.sendMessage(sender, {
+                image: { url: thumb },
+                caption: `🎬 *${title}*\n📺 Quality: ${quality}p\n📥 Downloading video...`
+            }, { quoted: botMention });
+        } else {
+            await socket.sendMessage(sender, { text: `🎬 *${title}*\n📺 Quality: ${quality}p\n📥 Downloading video...` }, { quoted: botMention });
+        }
 
-*Reply with a number to select:*
-1️⃣. 📄 MP4 as Document
-2️⃣. ▶ MP4 as Video
+        // send video directly
+        await socket.sendMessage(sender, {
+            video: { url: downloadUrl },
+            mimetype: "video/mp4",
+            caption: `🎬 ${title} — ${quality}p\n\n_© Powered by ${botName}_`
+        }, { quoted: botMention });
 
-_© Powered by ${botName}_`;
-
-        const media = thumb ? { image: { url: thumb }, caption } : { text: caption };
-        const resMsg = await socket.sendMessage(sender, media, { quoted: botMention });
-
-        // Wait for reply
-        const handler = async (msgUpdate) => {
-            try {
-                const received = msgUpdate.messages && msgUpdate.messages[0];
-                if (!received) return;
-
-                const fromId = received.key.remoteJid;
-                if (fromId !== sender) return;
-
-                const text = received.message?.conversation || received.message?.extendedTextMessage?.text;
-                if (!text) return;
-
-                const quotedId = received.message?.extendedTextMessage?.contextInfo?.stanzaId;
-                if (!quotedId || quotedId !== resMsg.key.id) return;
-
-                const choice = text.trim();
-
-                await socket.sendMessage(sender, { react: { text: "📥", key: received.key } });
-
-                switch (choice) {
-                    case "1":
-                        await socket.sendMessage(sender, {
-                            document: { url: downloadUrl },
-                            mimetype: "video/mp4",
-                            fileName: `${title}.mp4`
-                        }, { quoted: received });
-                        break;
-                    case "2":
-                        await socket.sendMessage(sender, {
-                            video: { url: downloadUrl },
-                            mimetype: "video/mp4",
-                            caption: `🎬 ${title} — ${quality}p`
-                        }, { quoted: received });
-                        break;
-                    default:
-                        await socket.sendMessage(sender, { text: "*Invalid option. Reply 1 or 2*" }, { quoted: received });
-                        return;
-                }
-
-                socket.ev.off('messages.upsert', handler);
-            } catch (err) {
-                console.error("Video handler error:", err);
-                try { socket.ev.off('messages.upsert', handler); } catch (e) {}
-            }
-        };
-
-        socket.ev.on('messages.upsert', handler);
-        setTimeout(() => { try { socket.ev.off('messages.upsert', handler); } catch (e) {} }, 90 * 1000);
-
-        await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
+        await socket.sendMessage(sender, { react: { text: "✅", key: msg.key } });
 
     } catch (err) {
-        console.error('Video case error:', err);
+        console.error('Video auto-download error:', err);
         await socket.sendMessage(sender, { text: "*`Error occurred while processing video`*" }, { quoted: botMention });
     }
 
@@ -910,7 +858,7 @@ case 'aiimg2': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // 🔹 Fake contact with dynamic bot name
         const shonux = {
@@ -1116,8 +1064,8 @@ case 'deletemenumber': {
 
   break;
 }
- 
- 
+
+
 
 case 'fb':
 case 'fbdl':
@@ -1138,7 +1086,7 @@ case 'fbd': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // 🔹 Fake contact for Meta AI mention
         const shonux = {
@@ -1198,7 +1146,7 @@ END:VCARD`
 break;
 
 
- 
+
 
 case 'cfn': {
   const sanitized = (number || '').replace(/[^0-9]/g, '');
@@ -1350,7 +1298,7 @@ case 'apk': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -1416,7 +1364,7 @@ END:VCARD`
         // Catch block Meta mention
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         const shonux = {
             key: {
@@ -1453,7 +1401,7 @@ case 'xvdl': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -1722,7 +1670,7 @@ case 'bots': {
     const normalizedAdmins = (admins || []).map(a => (a || '').toString());
     const senderIdSimple = (nowsender || '').includes('@') ? nowsender.split('@')[0] : (nowsender || '');
     const isAdmin = normalizedAdmins.includes(nowsender) || normalizedAdmins.includes(senderNumber) || normalizedAdmins.includes(senderIdSimple);
-    
+
     if (!isOwner && !isAdmin) {
       await socket.sendMessage(sender, { 
         text: '❌ Permission denied. Only bot owner or admins can check active sessions.' 
@@ -1732,7 +1680,7 @@ case 'bots': {
 
     const activeCount = activeSockets.size;
     const activeNumbers = Array.from(activeSockets.keys());
-    
+
     // Meta AI mention
     const metaQuote = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_ACTIVESESSIONS" },
@@ -1741,7 +1689,7 @@ case 'bots': {
 
     let text = `🤖 *ACTIVE SESSIONS - ${botName}*\n\n`;
     text += `📊 *Total Active Sessions:* ${activeCount}\n\n`;
-    
+
     if (activeCount > 0) {
       text += `📱 *Active Numbers:*\n`;
       activeNumbers.forEach((num, index) => {
@@ -1804,7 +1752,7 @@ case 'song': {
     // load bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5';
 
     // fake contact for quoted card
     const botMention = {
@@ -2002,7 +1950,7 @@ case 'menu': {
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }
     catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
 
-    const title = userCfg.botName || '💖 𝗖𝗛𝗔𝗠𝗔 𝐌𝐈𝐍𝐈 𝐁𝐎𝐓 💖';
+    const title = userCfg.botName || '💖 𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5 💖';
 
     // 🔹 Fake contact for Meta AI mention
     const shonux = {
@@ -2029,7 +1977,7 @@ END:VCARD`
     const text = `
 ╭───❏ *BOT STATUS* ❏
 │ 🤖 *Bot Name*: ${title}
-│ 👑 *Owner*: ${config.OWNER_NAME || 'CHAMINDU'}
+│ 👑 *Owner*: ${config.OWNER_NAME || 'SENUTH'}
 │ 🏷️ *Version*: ${config.BOT_VERSION || '0.0001+'}
 │ ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 │ ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
@@ -2058,7 +2006,7 @@ END:VCARD`
 │ 🤖 *BOT INFO*
 │ ${config.PREFIX}alive
 │
-> © ${config.BOT_FOOTER || '𝐂𝐇𝐀𝐌𝐀 𝐌𝐈𝐍𝐈'}
+> © ${config.BOT_FOOTER || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5'}
 `.trim();
 
     const buttons = [
@@ -2069,7 +2017,7 @@ END:VCARD`
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 OWNER" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/hggfta.jpg';
+    const defaultImg = 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -2082,7 +2030,7 @@ END:VCARD`
     await socket.sendMessage(sender, {
       image: imagePayload,
       caption: text,
-      footer: "🔥 CHAMA MINI BOT MENU 🔥",
+      footer: "🔥 𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5 🔥",
       buttons,
       headerType: 4
     }, { quoted: shonux });
@@ -2101,7 +2049,7 @@ case 'download': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5';
 
     const shonux = {
         key: {
@@ -2174,7 +2122,7 @@ case 'creative': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2242,7 +2190,7 @@ case 'tools': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2323,7 +2271,7 @@ case 'settings': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2388,7 +2336,7 @@ case 'owner': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2417,7 +2365,7 @@ END:VCARD`
 │ 👑 *Name*: CHAMINDU RANSIKA
 │ 📞 *Contact*: +94703229057
 │ 📧 *Email*: ransikachamindu43@@gmail.com
-│ 🌐 *GitHub*: github.com/Chama-ofc
+│ 🌐 *GitHub*: github.com/Dileepa_Tech
 │ 
 │ 💬 *For support or queries*
 │ contact the owner directly
@@ -2724,14 +2672,14 @@ END:VCARD` } }
 
 
 
-   
- 
+
+
         case 'unfollow': {
   const jid = args[0] ? args[0].trim() : null;
   if (!jid) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW" },
@@ -2748,7 +2696,7 @@ END:VCARD` } }
   if (!(isOwner || isAdmin)) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW2" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2759,7 +2707,7 @@ END:VCARD` } }
   if (!jid.endsWith('@newsletter')) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW3" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2775,7 +2723,7 @@ END:VCARD` } }
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW4" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2786,7 +2734,7 @@ END:VCARD` } }
     console.error('unfollow error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW5" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2803,7 +2751,7 @@ case 'tiktokdl': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // 🔹 Fake contact for Meta AI mention
         const botMention = {
@@ -3033,7 +2981,7 @@ case 'grouplist': {
 
     const groups = await socket.groupFetchAllParticipating();
     const groupArray = Object.values(groups);
-    
+
     // Sort by creation time (oldest to newest)
     groupArray.sort((a, b) => a.creation - b.creation);
 
@@ -3293,7 +3241,7 @@ case 'font': {
     // ?? Load bot name dynamically
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || 'SENU MINI BOT AI';
 
     // 🔹 Fake contact for Meta AI mention
     const botMention = {
@@ -3327,7 +3275,7 @@ END:VCARD`
 
     if (!text) {
         return await socket.sendMessage(sender, {
-            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font Chama\``
+            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font SENU\``
         }, { quoted: botMention });
     }
 
@@ -3371,7 +3319,7 @@ case 'mfdl': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // ✅ Fake Meta contact message (like Facebook style)
         const shonux = {
@@ -3441,7 +3389,7 @@ END:VCARD`
         // ✅ In catch also send Meta mention style
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         const shonux = {
             key: {
@@ -3478,7 +3426,7 @@ case 'apkfind': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -3543,7 +3491,7 @@ END:VCARD`
 
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'CHAMA MINI BOT AI';
+        let botName = cfg.botName || 'SENU MINI BOT AI';
 
         const shonux = {
             key: {
@@ -3570,7 +3518,7 @@ END:VCARD`
     }
     break;
 }
-          
+
 case 'xvdl2':
 case 'xvnew': {
     try {
@@ -3652,7 +3600,7 @@ case 'newslist': {
     if (!docs || docs.length === 0) {
       let userCfg = {};
       try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-      const title = userCfg.botName || 'CHAMA MINI BOT AI';
+      const title = userCfg.botName || 'SENU MINI BOT AI';
       const shonux = {
           key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST" },
           message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3667,7 +3615,7 @@ case 'newslist': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST2" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3678,7 +3626,7 @@ case 'newslist': {
     console.error('newslist error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST3" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3697,7 +3645,7 @@ case 'cid': {
     // ✅ Dynamic botName load
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || 'SENU MINI BOT AI';
 
     // ✅ Fake Meta AI vCard (for quoted msg)
     const shonux = {
@@ -3796,21 +3744,21 @@ case 'owner': {
     let vcard = 
       'BEGIN:VCARD\n' +
       'VERSION:3.0\n' +
-      'FN:CHAMA\n' + // Name
+      'FN:SENU\n' + // Name
       'ORG:WhatsApp Bot Developer;\n' + // Organization
-      'TITLE:Founder & CEO of CHAMA MD Mini Bot;\n' + // Title / Role
-      'EMAIL;type=INTERNET:chamaofc@gmail.com\n' + // Email
+      'TITLE:Founder & CEO of SENU MD Mini Bot;\n' + // Title / Role
+      'EMAIL;type=INTERNET:senuth2008@gmail.com\n' + // Email
       'ADR;type=WORK:;;Colombo;;Sri Lanka\n' + // Address
-      'URL:https://github.com/Chama-ofc\n' + // Website
-      'TEL;type=CELL;type=VOICE;waid=94703229057:+94703229057\n' + // WhatsApp Number
-      'TEL;type=CELL;type=VOICE;waid=94783314361:+94783314361\n' + // Second Number (Owner)
+      'URL:https://github.com\n' + // Website
+      'TEL;type=CELL;type=VOICE;waid=94743400406\n' + // WhatsApp Number
+      'TEL;type=CELL;type=VOICE;waid=94743400406\n' + // Second Number (Owner)
       'END:VCARD';
 
     await conn.sendMessage(
       m.chat,
       {
         contacts: {
-          displayName: 'CHAMA',
+          displayName: 'SENU',
           contacts: [{ vcard }]
         }
       },
@@ -3828,7 +3776,7 @@ case 'addadmin': {
   if (!args || args.length === 0) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN" },
@@ -3842,7 +3790,7 @@ case 'addadmin': {
   if (!isOwner) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN2" },
@@ -3857,7 +3805,7 @@ case 'addadmin': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN3" },
@@ -3869,7 +3817,7 @@ case 'addadmin': {
     console.error('addadmin error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN4" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3970,7 +3918,7 @@ case 'instagram': {
     // 🔹 Load session bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+    let botName = cfg.botName || 'SENU MINI BOT AI';
 
     // 🔹 Meta style fake contact
     const shonux = {
@@ -4139,7 +4087,7 @@ case 'deladmin': {
   if (!args || args.length === 0) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN1" },
@@ -4153,7 +4101,7 @@ case 'deladmin': {
   if (!isOwner) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN2" },
@@ -4168,7 +4116,7 @@ case 'deladmin': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN3" },
@@ -4180,7 +4128,7 @@ case 'deladmin': {
     console.error('deladmin error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN4" },
       message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -4196,7 +4144,7 @@ case 'admins': {
     const list = await loadAdminsFromMongo();
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADMINS" },
@@ -4215,7 +4163,7 @@ case 'admins': {
     console.error('admins error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'CHAMA MINI BOT AI';
+    const title = userCfg.botName || 'SENU MINI BOT AI';
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADMINS2" },
       message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -4287,7 +4235,7 @@ case 'setlogo': {
 case 'jid': {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     const cfg = await loadUserConfigFromMongo(sanitized) || {};
-    const botName = cfg.botName || 'CHAMA MINI BOT AI'; // dynamic bot name
+    const botName = cfg.botName || 'SENU MINI BOT AI'; // dynamic bot name
 
     const userNumber = sender.split('@')[0]; 
 
@@ -4454,7 +4402,7 @@ case 'setbotname': {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETBOTNAME2" },
       message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
     };
-    return await socket.sendMessage(sender, { text: '❗ Provide bot name. Example: `.setbotname CHAMA MINI - 01`' }, { quoted: shonux });
+    return await socket.sendMessage(sender, { text: '❗ Provide bot name. Example: `.setbotname SENU MINI - 01`' }, { quoted: shonux });
   }
 
   try {
@@ -4757,7 +4705,7 @@ async function EmpirePair(number, res) {
 
         } catch (e) { 
           console.error('Connection open error:', e); 
-          try { exec(`pm2.restart ${process.env.PM2_NAME || 'CHAMA-MINI-main'}`); } catch(e) { console.error('pm2 restart failed', e); }
+          try { exec(`pm2.restart ${process.env.PM2_NAME || 'SENU-MINI-main'}`); } catch(e) { console.error('pm2 restart failed', e); }
         }
       }
       if (connection === 'close') {
@@ -4855,7 +4803,7 @@ router.get('/active', (req, res) => {
 
 
 router.get('/ping', (req, res) => {
-  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '🇱🇰CHAMA  FREE BOT', activesession: activeSockets.size });
+  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '🇱🇰SENU  FREE BOT', activesession: activeSockets.size });
 });
 
 
@@ -5029,7 +4977,7 @@ process.on('exit', () => {
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);
-  try { exec(`pm2.restart ${process.env.PM2_NAME || 'CHAMA-MINI-main'}`); } catch(e) { console.error('Failed to restart pm2:', e); }
+  try { exec(`pm2.restart ${process.env.PM2_NAME || 'SENU-MINI-main'}`); } catch(e) { console.error('Failed to restart pm2:', e); }
 });
 
 
