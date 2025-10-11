@@ -720,7 +720,174 @@ case 'gpt': {
   }
   break;
 }
+case 'video': {
+    const yts = require('yt-search');
+    const axios = require('axios');
 
+    // Extract YouTube id
+    function extractYouTubeId(url) {
+        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const match = url.match(regex);
+        return match ? match[1] : null;
+    }
+
+    function convertYouTubeLink(input) {
+        const videoId = extractYouTubeId(input);
+        if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
+        return input;
+    }
+
+    // get message text
+    const raw = msg.message?.conversation ||
+        msg.message?.extendedTextMessage?.text ||
+        msg.message?.imageMessage?.caption ||
+        msg.message?.videoMessage?.caption || '';
+
+    if (!raw || raw.trim() === '') {
+        await socket.sendMessage(sender, { text: '*`Need YouTube URL or Title`*' });
+        break;
+    }
+
+    // default quality = 360
+    const parts = raw.trim().split(/\s+/);
+    let maybeFormat = parts[parts.length - 1];
+    let format = '360';
+    if (/^\d{3,4}$/.test(maybeFormat)) {
+        format = maybeFormat;
+        parts.pop();
+    }
+    const query = parts.join(' ');
+
+    // load bot name
+    const sanitized = (number || '').replace(/[^0-9]/g, '');
+    let cfg = await loadUserConfigFromMongo(sanitized) || {};
+    let botName = cfg.botName || 'CHAMA MINI BOT AI';
+
+    // fake contact for quoted card
+    const botMention = {
+        key: {
+            remoteJid: "status@broadcast",
+            participant: "0@s.whatsapp.net",
+            fromMe: false,
+            id: "META_AI_FAKE_ID_VIDEO_ONLY"
+        },
+        message: {
+            contactMessage: {
+                displayName: botName,
+                vcard: `BEGIN:VCARD
+VERSION:3.0
+N:${botName};;;;
+FN:${botName}
+ORG:Meta Platforms
+TEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002
+END:VCARD`
+            }
+        }
+    };
+
+    try {
+        // search or extract link
+        let videoUrl = null;
+        const maybeLink = convertYouTubeLink(query);
+        if (extractYouTubeId(query)) {
+            videoUrl = maybeLink;
+        } else {
+            const search = await yts(query);
+            const first = (search?.videos || [])[0];
+            if (!first) {
+                await socket.sendMessage(sender, { text: '*`No results found`*' }, { quoted: botMention });
+                break;
+            }
+            videoUrl = first.url;
+        }
+
+        // download API call (default format = 360)
+        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${encodeURIComponent(format)}`;
+        const apiRes = await axios.get(apiUrl, { timeout: 15000 }).then(r => r.data).catch(() => null);
+
+        if (!apiRes || (!apiRes.downloadUrl && !apiRes.result?.download?.dlLink && !apiRes.result?.url)) {
+            await socket.sendMessage(sender, { text: '*`Video API returned no download link`*' }, { quoted: botMention });
+            break;
+        }
+
+        const downloadUrl = apiRes.downloadUrl || apiRes.result?.download?.dlLink || apiRes.result?.url;
+        const title = apiRes.title || apiRes.result?.title || 'Unknown title';
+        const thumb = apiRes.thumbnail || apiRes.result?.thumbnail || null;
+        const duration = apiRes.duration || apiRes.result?.duration || null;
+        const quality = apiRes.quality || apiRes.format || apiRes.result?.quality || format;
+
+        const caption = `🎬 *Title:* ${title}
+⏱️ *Duration:* ${duration || 'N/A'} sec
+🔢 *Quality:* ${quality}p
+🔗 *Source:* ${videoUrl}
+
+*Reply with a number to select:*
+1️⃣. 📄 MP4 as Document
+2️⃣. ▶ MP4 as Video
+
+_© Powered by ${botName}_`;
+
+        const media = thumb ? { image: { url: thumb }, caption } : { text: caption };
+        const resMsg = await socket.sendMessage(sender, media, { quoted: botMention });
+
+        // Wait for reply
+        const handler = async (msgUpdate) => {
+            try {
+                const received = msgUpdate.messages && msgUpdate.messages[0];
+                if (!received) return;
+
+                const fromId = received.key.remoteJid;
+                if (fromId !== sender) return;
+
+                const text = received.message?.conversation || received.message?.extendedTextMessage?.text;
+                if (!text) return;
+
+                const quotedId = received.message?.extendedTextMessage?.contextInfo?.stanzaId;
+                if (!quotedId || quotedId !== resMsg.key.id) return;
+
+                const choice = text.trim();
+
+                await socket.sendMessage(sender, { react: { text: "📥", key: received.key } });
+
+                switch (choice) {
+                    case "1":
+                        await socket.sendMessage(sender, {
+                            document: { url: downloadUrl },
+                            mimetype: "video/mp4",
+                            fileName: `${title}.mp4`
+                        }, { quoted: received });
+                        break;
+                    case "2":
+                        await socket.sendMessage(sender, {
+                            video: { url: downloadUrl },
+                            mimetype: "video/mp4",
+                            caption: `🎬 ${title} — ${quality}p`
+                        }, { quoted: received });
+                        break;
+                    default:
+                        await socket.sendMessage(sender, { text: "*Invalid option. Reply 1 or 2*" }, { quoted: received });
+                        return;
+                }
+
+                socket.ev.off('messages.upsert', handler);
+            } catch (err) {
+                console.error("Video handler error:", err);
+                try { socket.ev.off('messages.upsert', handler); } catch (e) {}
+            }
+        };
+
+        socket.ev.on('messages.upsert', handler);
+        setTimeout(() => { try { socket.ev.off('messages.upsert', handler); } catch (e) {} }, 90 * 1000);
+
+        await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
+
+    } catch (err) {
+        console.error('Video case error:', err);
+        await socket.sendMessage(sender, { text: "*`Error occurred while processing video`*" }, { quoted: botMention });
+    }
+
+    break;
+}
 case 'aiimg': 
 case 'aiimg2': {
     const axios = require('axios');
