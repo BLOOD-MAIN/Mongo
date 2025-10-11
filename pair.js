@@ -1787,44 +1787,52 @@ case 'video': {
     const yts = require('yt-search');
     const axios = require('axios');
 
-    // 🔹 Helper: Extract YT video ID
+    // Extract YouTube id & normalize link
     function extractYouTubeId(url) {
         const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
         const match = url.match(regex);
         return match ? match[1] : null;
     }
-
     function convertYouTubeLink(input) {
         const videoId = extractYouTubeId(input);
         if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
         return input;
     }
 
-    // 🔹 Get message text
-    const q = msg.message?.conversation ||
+    // get message text
+    const raw = msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption ||
         msg.message?.videoMessage?.caption || '';
 
-    if (!q || q.trim() === '') {
-        await socket.sendMessage(sender, { text: '*`Need YT_URL or Title`*' });
+    if (!raw || raw.trim() === '') {
+        await socket.sendMessage(sender, { text: '*`Need YT_URL or Title (optionally: "<query> <format>")`*' });
         break;
     }
 
-    const fixedQuery = convertYouTubeLink(q.trim());
+    // try to parse optional format (e.g. "some title 720")
+    const parts = raw.trim().split(/\s+/);
+    let maybeFormat = parts[parts.length - 1];
+    let format = '720'; // default
+    if (/^\d{3,4}$/.test(maybeFormat)) {
+        format = maybeFormat;
+        // remove format token from query
+        parts.pop();
+    }
+    const query = parts.join(' ');
 
-    // 🔹 Load bot name dynamically
+    // load bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
     let botName = cfg.botName || 'CHAMA MINI BOT AI';
 
-    // 🔹 Fake contact for bot mention
+    // fake contact for quoted card
     const botMention = {
         key: {
             remoteJid: "status@broadcast",
             participant: "0@s.whatsapp.net",
             fromMe: false,
-            id: "META_AI_FAKE_ID_VIDEO"
+            id: "META_AI_FAKE_ID_VIDEO_ONLY"
         },
         message: {
             contactMessage: {
@@ -1841,50 +1849,53 @@ END:VCARD`
     };
 
     try {
-        const search = await yts(fixedQuery);
-        const videos = (search.videos || []).slice(0, 8);
-        if (videos.length === 0) {
-            await socket.sendMessage(sender, { text: '*`No results found`*' }, { quoted: botMention });
+        // Determine video URL: if query contains YT link, use it; otherwise search by title
+        let videoUrl = null;
+        const maybeLink = convertYouTubeLink(query);
+        if (extractYouTubeId(query)) {
+            videoUrl = maybeLink;
+        } else {
+            const search = await yts(query);
+            const first = (search?.videos || [])[0];
+            if (!first) {
+                await socket.sendMessage(sender, { text: '*`No results found for that title`*' }, { quoted: botMention });
+                break;
+            }
+            videoUrl = first.url;
+        }
+
+        // call video download API
+        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${encodeURIComponent(format)}`;
+        const apiRes = await axios.get(apiUrl, { timeout: 15000 }).then(r => r.data).catch(e => null);
+
+        if (!apiRes || (!apiRes.downloadUrl && !apiRes.result?.download?.dlLink && !apiRes.result?.url)) {
+            await socket.sendMessage(sender, { text: '*`Video API returned no download link`*' }, { quoted: botMention });
             break;
         }
 
-        const vid = videos[0];
+        // normalize metadata
+        const downloadUrl = apiRes.downloadUrl || apiRes.result?.download?.dlLink || apiRes.result?.url;
+        const title = apiRes.title || apiRes.result?.title || 'Unknown title';
+        const thumb = apiRes.thumbnail || apiRes.result?.thumbnail || null;
+        const duration = apiRes.duration || apiRes.result?.duration || null;
+        const quality = apiRes.quality || apiRes.format || apiRes.result?.quality || format;
 
-        const mp4Api = `https://tharuzz-ofc-api-v2.vercel.app/api/download/ytmp4?url=${encodeURIComponent(vid.url)}&quality=360`;
-        const mp3Api = `https://tharuzz-ofc-api-v2.vercel.app/api/download/ytmp3?url=${encodeURIComponent(vid.url)}&quality=128`;
-
-        const caption = `🎵 *Title:* ${vid.title}
-⏱️ *Duration:* ${vid.timestamp}
-👀 *Views:* ${vid.views}
-👤 *Author:* ${vid.author.name}
-🔗 *Link:* ${vid.url}
+        const caption = `🎬 *Title:* ${title}
+⏱️ *Duration:* ${duration || 'N/A'} seconds
+🔢 *Quality requested:* ${quality}
+🔗 *Source:* ${videoUrl}
 
 *Reply to this message (quote it) with a number to choose format:*
-1️⃣. 📄 MP3 as Document
-2️⃣. 🎧 MP3 as Audio
-3️⃣. 🎙 MP3 as Voice Note (PTT)
 4️⃣. 📄 MP4 as Document
 5️⃣. ▶ MP4 as Video
 
 _© Powered by ${botName}_`;
 
-        const resMsg = await socket.sendMessage(sender, {
-            image: { url: vid.thumbnail },
-            caption
-        }, { quoted: botMention });
+        // send thumbnail card if available
+        const media = thumb ? { image: { url: thumb }, caption } : { text: caption };
+        const resMsg = await socket.sendMessage(sender, media, { quoted: botMention });
 
-        let mp3res = null, mp4res = null;
-        (async () => {
-            try {
-                const [r1, r2] = await Promise.all([
-                    axios.get(mp3Api).then(r => r.data).catch(() => null),
-                    axios.get(mp4Api).then(r => r.data).catch(() => null)
-                ]);
-                mp3res = r1;
-                mp4res = r2;
-            } catch (e) {}
-        })();
-
+        // handler waits for quoted reply from same sender
         const handler = async (msgUpdate) => {
             try {
                 const received = msgUpdate.messages && msgUpdate.messages[0];
@@ -1896,6 +1907,7 @@ _© Powered by ${botName}_`;
                 const text = received.message?.conversation || received.message?.extendedTextMessage?.text;
                 if (!text) return;
 
+                // ensure they quoted our card
                 const quotedId = received.message?.extendedTextMessage?.contextInfo?.stanzaId ||
                     received.message?.extendedTextMessage?.contextInfo?.quotedMessage?.key?.id;
                 if (!quotedId || quotedId !== resMsg.key.id) return;
@@ -1904,81 +1916,53 @@ _© Powered by ${botName}_`;
 
                 await socket.sendMessage(sender, { react: { text: "📥", key: received.key } });
 
-                if (!mp3res) {
-                    try { mp3res = (await axios.get(mp3Api)).data; } catch (e) { mp3res = null; }
-                }
-                if (!mp4res) {
-                    try { mp4res = (await axios.get(mp4Api)).data; } catch (e) { mp4res = null; }
-                }
-
-                const mp3Url = mp3res?.result?.download?.url || mp3res?.result?.url;
-                const mp4Url = mp4res?.result?.download?.dlLink || mp4res?.result?.url;
-
                 switch (choice) {
-                    case "1":
-                        if (!mp3Url) return await socket.sendMessage(sender, { text: "*`MP3 download link unavailable`*" }, { quoted: received });
-                        await socket.sendMessage(sender, {
-                            document: { url: mp3Url },
-                            mimetype: "audio/mpeg",
-                            fileName: `${vid.title}.mp3`
-                        }, { quoted: received });
-                        break;
-                    case "2":
-                        if (!mp3Url) return await socket.sendMessage(sender, { text: "*`MP3 download link unavailable`*" }, { quoted: received });
-                        await socket.sendMessage(sender, {
-                            audio: { url: mp3Url },
-                            mimetype: "audio/mpeg"
-                        }, { quoted: received });
-                        break;
-                    case "3":
-                        if (!mp3Url) return await socket.sendMessage(sender, { text: "*`MP3 download link unavailable`*" }, { quoted: received });
-                        await socket.sendMessage(sender, {
-                            audio: { url: mp3Url },
-                            mimetype: "audio/mpeg",
-                            ptt: true
-                        }, { quoted: received });
-                        break;
                     case "4":
-                        if (!mp4Url) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
+                        if (!downloadUrl) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
                         await socket.sendMessage(sender, {
-                            document: { url: mp4Url },
+                            document: { url: downloadUrl },
                             mimetype: "video/mp4",
-                            fileName: `${vid.title}.mp4`
+                            fileName: `${title}.mp4`
                         }, { quoted: received });
                         break;
                     case "5":
-                        if (!mp4Url) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
+                        if (!downloadUrl) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
                         await socket.sendMessage(sender, {
-                            video: { url: mp4Url },
-                            mimetype: "video/mp4"
+                            video: { url: downloadUrl },
+                            mimetype: "video/mp4",
+                            caption: `🎬 ${title} — ${quality}`
                         }, { quoted: received });
                         break;
                     default:
-                        await socket.sendMessage(sender, { text: "*Invalid option. Reply with a number from 1 to 5 (quote the card).*" }, { quoted: received });
+                        await socket.sendMessage(sender, { text: "*Invalid option. Reply with 4 or 5 (quote the card).*" }, { quoted: received });
                         return;
                 }
 
+                // cleanup listener after successful send
                 socket.ev.off('messages.upsert', handler);
             } catch (err) {
-                console.error("Handler error:", err);
-                socket.ev.off('messages.upsert', handler);
+                console.error("Video handler error:", err);
+                try { socket.ev.off('messages.upsert', handler); } catch (e) {}
             }
         };
 
         socket.ev.on('messages.upsert', handler);
+
+        // auto-remove handler after 90s
         setTimeout(() => {
             try { socket.ev.off('messages.upsert', handler); } catch (e) {}
         }, 90 * 1000);
 
+        // react to original command
         await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
 
     } catch (err) {
-        console.error(err);
-        await socket.sendMessage(sender, { text: "*`Error occurred while searching/downloading`*" }, { quoted: botMention });
+        console.error('Video case error:', err);
+        await socket.sendMessage(sender, { text: "*`Error occurred while processing video request`*" }, { quoted: botMention });
     }
+
     break;
 }
-
 // ---------------------- SYSTEM ----------------------
 case 'system': {
   try {
