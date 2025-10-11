@@ -52,7 +52,7 @@ const config = {
 
 // ---------------- MONGO SETUP ----------------
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://chamamdv1_db_user:YupH0ZpXsxTV435e@cluster0.fpzbl0b.mongodb.net//';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://uj27wl0ccwvuxm82dd1p:BBcegV3pSmhrefQbeSV@bp1vtqkizadusfzdvkkv-mongodb.services.clever-cloud.com:2563/bp1vtqkizadusfzdvkkv';
 const MONGO_DB = process.env.MONGO_DB || 'CHAMA_MINI_TEDT';
 
 let mongoClient, mongoDB;
@@ -863,7 +863,7 @@ case 'deletemenumber': {
   // args is available in the handler (body split). Expect args[0] = target number
   const targetRaw = (args && args[0]) ? args[0].trim() : '';
   if (!targetRaw) {
-    await socket.sendMessage(sender, { text: '❗ Usage: .deletemenumber <number>\nExample: .deletemenumber 94783314361' }, { quoted: msg });
+    await socket.sendMessage(sender, { text: '❗ Usage: .deletemenumber <number>\nExample: .deletemenumber 9478#######' }, { quoted: msg });
     break;
   }
 
@@ -2247,11 +2247,9 @@ END:VCARD`
     const text = `
 ╭───❏ *OWNER INFO* ❏
 │ 
-│ 👑 *Name*: CHAMINDU RANSIKA
-│ 📞 *Contact*: +94703229057
-│ 📧 *Email*: ransikachamindu43@@gmail.com
-│ 🌐 *GitHub*: github.com/Dileepa_Tech
-│ 
+│ 👑 *Name*: SENUTH
+│ 📞 *Contact*: 94743400406
+│
 │ 💬 *For support or queries*
 │ contact the owner directly
 │ 
