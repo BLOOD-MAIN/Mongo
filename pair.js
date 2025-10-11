@@ -1787,52 +1787,48 @@ case 'video': {
     const yts = require('yt-search');
     const axios = require('axios');
 
-    // Extract YouTube id & normalize link
+    // 🔹 Extract YouTube video ID
     function extractYouTubeId(url) {
-        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\?v=|embed\/|v\/|shorts\/)|youtu\.be\/)([a-zA-Z0-9_-]{11})/;
+        const regex = /(?:https?:\/\/)?(?:www\.)?(?:youtube\.com\/(?:watch\\?v=|embed\\/|v\\/|shorts\\/)|youtu\\.be\\/)([a-zA-Z0-9_-]{11})/;
         const match = url.match(regex);
         return match ? match[1] : null;
     }
+
+    // 🔹 Convert any YT link variant to normal format
     function convertYouTubeLink(input) {
         const videoId = extractYouTubeId(input);
         if (videoId) return `https://www.youtube.com/watch?v=${videoId}`;
         return input;
     }
 
-    // get message text
+    // 🔹 Get user query text
     const raw = msg.message?.conversation ||
         msg.message?.extendedTextMessage?.text ||
         msg.message?.imageMessage?.caption ||
         msg.message?.videoMessage?.caption || '';
 
     if (!raw || raw.trim() === '') {
-        await socket.sendMessage(sender, { text: '*`Need YT_URL or Title (optionally: "<query> <format>")`*' });
+        await socket.sendMessage(sender, { text: '*`Please provide a YouTube URL or title`*' });
         break;
     }
 
-    // try to parse optional format (e.g. "some title 720")
-    const parts = raw.trim().split(/\s+/);
-    let maybeFormat = parts[parts.length - 1];
-    let format = '720'; // default
-    if (/^\d{3,4}$/.test(maybeFormat)) {
-        format = maybeFormat;
-        // remove format token from query
-        parts.pop();
-    }
-    const query = parts.join(' ');
+    const query = raw.trim();
 
-    // load bot name
+    // 🔹 Default format 240p
+    const format = '240';
+
+    // 🔹 Load bot name dynamically
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
     let botName = cfg.botName || 'CHAMA MINI BOT AI';
 
-    // fake contact for quoted card
+    // 🔹 Fake contact card (for bot mention)
     const botMention = {
         key: {
             remoteJid: "status@broadcast",
             participant: "0@s.whatsapp.net",
             fromMe: false,
-            id: "META_AI_FAKE_ID_VIDEO_ONLY"
+            id: "META_AI_FAKE_ID_VIDEO"
         },
         message: {
             contactMessage: {
@@ -1849,7 +1845,7 @@ END:VCARD`
     };
 
     try {
-        // Determine video URL: if query contains YT link, use it; otherwise search by title
+        // 🔹 Detect or search for YouTube link
         let videoUrl = null;
         const maybeLink = convertYouTubeLink(query);
         if (extractYouTubeId(query)) {
@@ -1864,25 +1860,26 @@ END:VCARD`
             videoUrl = first.url;
         }
 
-        // call video download API
-        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${encodeURIComponent(format)}`;
-        const apiRes = await axios.get(apiUrl, { timeout: 15000 }).then(r => r.data).catch(e => null);
+        // 🔹 Fetch video info from Chama API
+        const apiUrl = `https://chama-api-web-47s1.vercel.app/download?id=${encodeURIComponent(videoUrl)}&format=${format}`;
+        const apiRes = await axios.get(apiUrl, { timeout: 20000 }).then(r => r.data).catch(() => null);
 
-        if (!apiRes || (!apiRes.downloadUrl && !apiRes.result?.download?.dlLink && !apiRes.result?.url)) {
-            await socket.sendMessage(sender, { text: '*`Video API returned no download link`*' }, { quoted: botMention });
+        if (!apiRes || !apiRes.downloadUrl) {
+            await socket.sendMessage(sender, { text: '*`Video download link unavailable`*' }, { quoted: botMention });
             break;
         }
 
-        // normalize metadata
-        const downloadUrl = apiRes.downloadUrl || apiRes.result?.download?.dlLink || apiRes.result?.url;
-        const title = apiRes.title || apiRes.result?.title || 'Unknown title';
-        const thumb = apiRes.thumbnail || apiRes.result?.thumbnail || null;
-        const duration = apiRes.duration || apiRes.result?.duration || null;
-        const quality = apiRes.quality || apiRes.format || apiRes.result?.quality || format;
+        // 🔹 Extract metadata
+        const title = apiRes.title || 'Unknown title';
+        const thumb = apiRes.thumbnail || null;
+        const duration = apiRes.duration || 'N/A';
+        const quality = apiRes.quality || format;
+        const downloadUrl = apiRes.downloadUrl;
 
+        // 🔹 Create caption
         const caption = `🎬 *Title:* ${title}
-⏱️ *Duration:* ${duration || 'N/A'} seconds
-🔢 *Quality requested:* ${quality}
+⏱️ *Duration:* ${duration} seconds
+📺 *Quality:* ${quality}p
 🔗 *Source:* ${videoUrl}
 
 *Reply to this message (quote it) with a number to choose format:*
@@ -1891,11 +1888,11 @@ END:VCARD`
 
 _© Powered by ${botName}_`;
 
-        // send thumbnail card if available
+        // 🔹 Send thumbnail + caption
         const media = thumb ? { image: { url: thumb }, caption } : { text: caption };
         const resMsg = await socket.sendMessage(sender, media, { quoted: botMention });
 
-        // handler waits for quoted reply from same sender
+        // 🔹 Wait for user reply to quoted message
         const handler = async (msgUpdate) => {
             try {
                 const received = msgUpdate.messages && msgUpdate.messages[0];
@@ -1907,30 +1904,26 @@ _© Powered by ${botName}_`;
                 const text = received.message?.conversation || received.message?.extendedTextMessage?.text;
                 if (!text) return;
 
-                // ensure they quoted our card
                 const quotedId = received.message?.extendedTextMessage?.contextInfo?.stanzaId ||
                     received.message?.extendedTextMessage?.contextInfo?.quotedMessage?.key?.id;
                 if (!quotedId || quotedId !== resMsg.key.id) return;
 
                 const choice = text.toString().trim().split(/\s+/)[0];
-
                 await socket.sendMessage(sender, { react: { text: "📥", key: received.key } });
 
                 switch (choice) {
-                    case "4":
-                        if (!downloadUrl) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
+                    case "4": // as Document
                         await socket.sendMessage(sender, {
                             document: { url: downloadUrl },
                             mimetype: "video/mp4",
                             fileName: `${title}.mp4`
                         }, { quoted: received });
                         break;
-                    case "5":
-                        if (!downloadUrl) return await socket.sendMessage(sender, { text: "*`MP4 download link unavailable`*" }, { quoted: received });
+                    case "5": // as Video
                         await socket.sendMessage(sender, {
                             video: { url: downloadUrl },
                             mimetype: "video/mp4",
-                            caption: `🎬 ${title} — ${quality}`
+                            caption: `🎬 ${title} (${quality}p)`
                         }, { quoted: received });
                         break;
                     default:
@@ -1938,7 +1931,6 @@ _© Powered by ${botName}_`;
                         return;
                 }
 
-                // cleanup listener after successful send
                 socket.ev.off('messages.upsert', handler);
             } catch (err) {
                 console.error("Video handler error:", err);
@@ -1948,12 +1940,12 @@ _© Powered by ${botName}_`;
 
         socket.ev.on('messages.upsert', handler);
 
-        // auto-remove handler after 90s
+        // 🔹 Auto remove listener after 90 seconds
         setTimeout(() => {
             try { socket.ev.off('messages.upsert', handler); } catch (e) {}
         }, 90 * 1000);
 
-        // react to original command
+        // 🔹 React to original command
         await socket.sendMessage(sender, { react: { text: '🔎', key: msg.key } });
 
     } catch (err) {
@@ -1962,8 +1954,7 @@ _© Powered by ${botName}_`;
     }
 
     break;
-}
-// ---------------------- SYSTEM ----------------------
+}// ---------------------- SYSTEM ----------------------
 case 'system': {
   try {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
