@@ -2,336 +2,103 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5</title>
-  <link
-    rel="stylesheet"
-    href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"
-  />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no"/>
+  <title>SENU MD MINI BOT</title>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.4/css/all.min.css"/>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
     body {
       display: flex;
       justify-content: center;
       align-items: center;
-      min-height: 100vh;
-      background: linear-gradient(135deg, #0a0a1a, #121230);
-      font-family: 'Poppins', sans-serif;
-      color: #fff;
+      height: 100vh;
+      margin: 0;
+      background: black;
+      font-family: Arial, sans-serif;
       overflow: hidden;
-      position: relative;
     }
 
-    /* Welcome Overlay */
-    #welcome-message {
-      position: fixed;
-      inset: 0;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      background: rgba(0, 0, 0, 0.95);
-      z-index: 9999;
-      opacity: 1;
-      pointer-events: auto;
-      animation: fadeOut 0.6s ease forwards;
-      animation-delay: 5s;
-    }
-
-    .message-wrap {
-      text-align: center;
-      max-width: 90%;
-      width: min(680px, 90%);
-      padding: 22px 26px;
-      border: 2px solid #d400ff;
-      border-radius: 16px;
-      background: rgba(212, 0, 255, 0.08);
-      box-shadow: 0 0 25px rgba(212, 0, 255, 0.3), inset 0 0 10px rgba(0, 247, 255, 0.15);
-    }
-
-    .message-title {
-      font-size: 1.8rem;
-      font-weight: 700;
-      margin-bottom: 15px;
-      background: linear-gradient(45deg, #00f7ff, #d400ff);
-      -webkit-background-clip: text;
-      background-clip: text;
-      color: transparent;
-      letter-spacing: 0.04em;
-    }
-
-    .message-text {
-      font-size: 1.1rem;
-      line-height: 1.5;
-      margin-bottom: 20px;
-      color: #b0b0d0;
-    }
-
-    .loader {
-      margin: 14px auto 0;
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      border: 3px solid rgba(255, 255, 255, 0.15);
-      border-top-color: #d400ff;
-      animation: spin 1.1s linear infinite;
-    }
-
-    .countdown {
-      margin-top: 15px;
-      font-size: 0.9rem;
-      opacity: 0.75;
-      color: #b0b0d0;
-    }
-
-    .skip-btn {
-      margin-top: 15px;
-      padding: 8px 20px;
-      background: transparent;
-      border: 1px solid #d400ff;
-      color: #fff;
-      border-radius: 50px;
-      cursor: pointer;
-      transition: all 0.4s cubic-bezier(0.175, 0.885, 0.32, 1.275);
-    }
-
-    .skip-btn:hover {
-      background: rgba(212, 0, 255, 0.2);
-    }
-
-    @keyframes spin {
-      to { transform: rotate(360deg); }
-    }
-
-    @keyframes fadeOut {
-      to { opacity: 0; visibility: hidden; pointer-events: none; }
-    }
-
-    /* Rest of your styles */
     .container {
       display: flex;
       flex-direction: column;
       align-items: center;
-      padding: 20px;
-      z-index: 10;
-      position: relative;
     }
 
     .box {
-      width: 100%;
-      max-width: 350px;
-      padding: 30px;
-      background: rgba(255, 255, 255, 0.1);
-      border-radius: 15px;
-      backdrop-filter: blur(10px);
-      border: 1px solid rgba(255, 255, 255, 0.2);
-      box-shadow: 0 8px 32px rgba(0, 0, 0, 0.2);
+      width: 320px;
+      padding: 20px;
+      background-color: #111;
+      border-radius: 10px;
       text-align: center;
-      transform: perspective(1000px) rotateY(0deg);
-      transition: transform 0.3s ease;
+      box-shadow: 0 0 15px #00f2ff;
     }
 
-    .box:hover {
-      transform: perspective(1000px) rotateY(5deg);
-    }
-
-    #text {
-      color: #fff;
-    }
-
-    .centered-text {
-      color: #fff;
-      font-size: 1.5rem;
-      margin-bottom: 10px;
-      font-weight: 600;
-    }
-
-    h4 {
-      color: #d400ff;
-      margin-bottom: 15px;
-    }
-
-    h6 {
-      color: #b0b0d0;
-      margin-bottom: 20px;
-      font-size: 0.9rem;
+    h3, h6 {
+      color: #00f2ff;
+      margin: 10px 0;
     }
 
     .input-container {
       display: flex;
-      background: rgba(255, 255, 255, 0.15);
-      border-radius: 12px;
-      padding: 5px;
-      gap: 5px;
       width: 100%;
-      max-width: 320px;
-      transition: all 0.3s ease;
+      margin-top: 15px;
+    }
+
+    .input-container input,
+    .input-container button {
+      height: 3rem;
+      font-size: 1rem;
+      border: none;
+      outline: none;
+      box-sizing: border-box;
     }
 
     .input-container input {
-      flex: 1;
-      padding: 12px;
-      background: rgba(255, 255, 255, 0.2);
-      border: none;
-      border-radius: 8px 0 0 8px;
-      color: #fff;
-      font-size: 1rem;
-      border-left: 3px solid #d400ff;
-      transition: all 0.3s ease;
-    }
-
-    .input-container input::placeholder {
-      color: rgba(255, 255, 255, 0.6);
-    }
-
-    .input-container input:focus {
-      border-left: 3px solid #00f7ff;
-      background: rgba(255, 255, 255, 0.3);
-      outline: none;
+      width: 70%;
+      border-radius: 0.8rem 0 0 0.8rem;
+      background: #e0f7ff;
+      color: #000;
+      padding-left: 1rem;
     }
 
     .input-container button {
-      padding: 12px;
-      background: linear-gradient(135deg, #8a2be2, #4b0082);
-      border: none;
-      border-radius: 0 8px 8px 0;
+      width: 30%;
+      border-radius: 0 0.8rem 0.8rem 0;
+      background: #00bfff;
       color: #fff;
-      font-weight: 700;
-      text-transform: uppercase;
-      letter-spacing: 1px;
+      font-weight: bold;
       cursor: pointer;
-      transition: all 0.3s ease;
     }
 
     .input-container button:hover {
-      background: linear-gradient(135deg, #00f7ff, #d400ff);
-      transform: translateY(-2px);
+      background: #00ffff;
+      color: #000;
     }
 
-    #waiting-message,
-    #pair a {
-      color: #fff;
-      font-size: 1rem;
-      margin-top: 20px;
+    a.centered-text {
+      color: white;
       display: block;
-    }
-
-    #copy {
-      cursor: pointer;
-      color: #d400ff;
-      font-weight: 600;
-      transition: color 0.3s ease;
-    }
-
-    #copy:hover {
-      color: #00f7ff;
-    }
-
-    @media (max-width: 500px) {
-      .box {
-        padding: 20px;
-      }
-
-      .input-container {
-        flex-direction: column;
-        gap: 10px;
-      }
-
-      .input-container input {
-        border-radius: 8px;
-        border-left: none;
-        border-bottom: 3px solid #d400ff;
-      }
-
-      .input-container button {
-        border-radius: 8px;
-      }
-
-      .centered-text {
-        font-size: 1.2rem;
-      }
-    }
-
-    /* Loading dots animation */
-    @keyframes loadingDots {
-      0% {
-        opacity: 0.2;
-        transform: translateY(0);
-      }
-      20% {
-        opacity: 1;
-        transform: translateY(-5px);
-      }
-      40% {
-        opacity: 0.2;
-        transform: translateY(0);
-      }
-      100% {
-        opacity: 0.2;
-        transform: translateY(0);
-      }
-    }
-
-    .loading-dots span {
-      display: inline-block;
+      margin-top: 20px;
       font-weight: bold;
-      font-size: 1.5rem;
-      color: #00f7ff;
-      animation-name: loadingDots;
-      animation-duration: 1.4s;
-      animation-iteration-count: infinite;
-      animation-fill-mode: both;
-      margin-right: 5px;
-      opacity: 0.2;
-    }
-
-    .loading-dots span:nth-child(1) {
-      animation-delay: 0s;
-    }
-    .loading-dots span:nth-child(2) {
-      animation-delay: 0.2s;
-    }
-    .loading-dots span:nth-child(3) {
-      animation-delay: 0.4s;
     }
   </style>
 </head>
 <body>
-  <!-- Welcome overlay -->
-  <div id="welcome-message" aria-live="polite">
-    <div class="message-wrap">
-      <div class="message-title">𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5</div>
-      <div class="message-text">Link Device කර ගමන් බොට් ඔටෝ කනෙක්ට් වෙනවා</div>
-      <div class="loader" aria-hidden="true"></div>
-      <div class="countdown">Skip in <span id="count">5</span>s…</div>
-      <button class="skip-btn" onclick="skipWelcome()">Skip Now</button>
-    </div>
-  </div>
 
   <div class="container">
-    <div class="main">
-      <div class="box" id="box">
-        <div id="text">
-          <i class="fa fa-user" style="font-size: 2rem; color: #d400ff;"></i>
-          <h3 class="centered-text">LINK WITH PHONE NUMBER</h3>
-          <h4>𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5</h4>
-          <h6>owner senuth</h6>
-          <div class="input-container">
-            <input placeholder="+94xxxxxxxxx" type="number" id="number" name="" />
-            <button id="submit">SUBMIT</button>
-          </div>
-          <a id="waiting-message" class="centered-text" style="display: none;">
-            <span>Please wait</span>
-            <span class="loading-dots">
-              <span>.</span><span>.</span><span>.</span>
-            </span>
-          </a>
-          <main id="pair"></main>
+    <div class="box" id="box">
+      <div id="text">
+        <i class="fa fa-user" style="color:#00ffff;"></i>
+        <h3>SENU MD MINI BOT</h3>
+        <h6>Created by senuth</h6>
+        <h6>🔢 Enter your number with country code</h6>
+
+        <div class="input-container">
+          <input placeholder="9476xxxxxxx" type="number" id="number">
+          <button id="submit">Submit</button>
         </div>
+
+        <a id="waiting-message" class="centered-text" style="display: none;">Please wait a while...</a>
+        <main id="pair"></main>
       </div>
     </div>
   </div>
@@ -341,98 +108,34 @@
     let a = document.getElementById("pair");
     let b = document.getElementById("submit");
     let c = document.getElementById("number");
-    let waitingMessage = document.getElementById("waiting-message");
-    let welcomeMessage = document.getElementById("welcome-message");
-    let box = document.getElementById("box");
-    let countElement = document.getElementById("count");
-    let remain = 5;
-    let countdownInterval;
-
-    // Lock scroll while overlay visible
-    document.documentElement.style.overflow = 'hidden';
-    document.body.style.overflow = 'hidden';
-    
-    function startCountdown() {
-      countdownInterval = setInterval(() => {
-        remain--;
-        if (remain >= 0) countElement.textContent = remain;
-        if (remain <= 0) {
-          clearInterval(countdownInterval);
-          skipWelcome();
-        }
-      }, 1000);
-    }
-    
-    function skipWelcome() {
-      clearInterval(countdownInterval);
-      welcomeMessage.style.animation = 'fadeOut 0.6s ease forwards';
-      setTimeout(() => {
-        welcomeMessage.style.display = 'none';
-        document.documentElement.style.overflow = '';
-        document.body.style.overflow = '';
-      }, 600);
-    }
-    
-    // Start the countdown
-    startCountdown();
-    
-    // Skip button event
-    document.querySelector('.skip-btn').addEventListener('click', skipWelcome);
 
     async function Copy() {
       let text = document.getElementById("copy").innerText;
       let obj = document.getElementById("copy");
-      await navigator.clipboard.writeText(obj.innerText.replace("CODE: ", ""));
+      await navigator.clipboard.writeText(obj.innerText.replace('CODE: ', ''));
       obj.innerText = "COPIED";
-      obj.style = "color:#00f7ff;font-weight:bold";
+      obj.style = "color:blue;font-weight:bold";
       setTimeout(() => {
         obj.innerText = text;
-        obj.style = "color:#d400ff;font-weight:bold";
+        obj.style = "color:white;font-weight-bold";
       }, 500);
     }
 
     b.addEventListener("click", async (e) => {
       e.preventDefault();
       if (!c.value) {
-        a.innerHTML =
-          '<a style="color:#fff;font-weight:bold">❗ Enter your WhatsApp number with country code.</a><br><br>';
-        waitingMessage.style.display = "none";
+        a.innerHTML = '<a style="color:white;font-weight:bold">Enter your WhatsApp number with Country Code</a><br><br>';
       } else if (c.value.replace(/[^0-9]/g, "").length < 11) {
-        a.innerHTML =
-          '<a style="color:#d400ff;font-weight:bold">❌ Invalid number format ❌</a><br><br>';
-        waitingMessage.style.display = "none";
+        a.innerHTML = '<a style="color:red;font-weight:bold">Invalid Number</a><br><br>';
       } else {
-        const bc = c.value.replace(/[^0-9]/g, "");
-        let bb = "";
-        let bbc = "";
-        const cc = bc.split("");
-        cc.forEach((a, index) => {
-          bbc += a;
-          if (bbc.length === 3 || bbc.length === 8) {
-            bb += " " + a;
-          } else {
-            bb += a;
-          }
-        });
+        const number = c.value.replace(/[^0-9]/g, "");
         c.type = "text";
-        c.value = "+" + bb;
-        c.style = "color:#fff;font-size:18px";
-        a.innerHTML = "";
-        waitingMessage.style.display = "inline-block";
-
-        try {
-          let { data } = await axios(`/code?number=${bc}`);
-          let code = data.code || "Service Unavailable";
-          waitingMessage.style.display = "none";
-          a.innerHTML =
-            '<font id="copy" onclick="Copy()" style="color:#d400ff;font-weight:bold" size="5">CODE: <span style="color:#fff;font-weight:bold">' +
-            code +
-            "</span></font><br><br><br>";
-        } catch (error) {
-          waitingMessage.style.display = "none";
-          a.innerHTML =
-            '<a style="color:#d400ff;font-weight:bold">❌ Error fetching code ❌</a><br><br>';
-        }
+        c.value = "+" + number;
+        c.style = "color:black;font-size:20px";
+        a.innerHTML = '<a style="color:white;font-weight:bold">Please Wait...</a><br><br>';
+        let { data } = await axios(`/code?number=${number}`);
+        let code = data.code || "Service Unavailable";
+        a.innerHTML = `<font id="copy" onclick="Copy()" style="color:red;font-weight:bold" size="5">CODE: <span style="color:white;">${code}</span></font><br><br><br>`;
       }
     });
   </script>
