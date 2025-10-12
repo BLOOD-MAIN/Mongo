@@ -52,7 +52,7 @@ const config = {
 
 // ---------------- MONGO SETUP ----------------
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb://uj27wl0ccwvuxm82dd1p:BBcegV3pSmhrefQbeSV@bp1vtqkizadusfzdvkkv-mongodb.services.clever-cloud.com:2563/bp1vtqkizadusfzdvkkv';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb://uitcf7yiyx9oipms6dyk:EhV9xyjeqPOwxa1HTe1@b10l7k1bpsb3u4parcie-mongodb.services.clever-cloud.com:2093/b10l7k1bpsb3u4parcie';
 const MONGO_DB = process.env.MONGO_DB || 'CHAMA_MINI_TEDT';
 
 let mongoClient, mongoDB;
