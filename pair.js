@@ -804,6 +804,80 @@ END:VCARD`
     }
     break;
 }
+               case 'pair': {
+    // ✅ Fix for node-fetch v3.x (ESM-only module)
+    const fetch = (...args) => import('node-fetch').then(({ default: fetch }) => fetch(...args));
+    const sleep = (ms) => new Promise(resolve => setTimeout(resolve, ms));
+
+    const q = msg.message?.conversation ||
+              msg.message?.extendedTextMessage?.text ||
+              msg.message?.imageMessage?.caption ||
+              msg.message?.videoMessage?.caption || '';
+
+    const number = q.replace(/^[.\/!]pair\s*/i, '').trim();
+
+    if (!number) {
+        return await socket.sendMessage(sender, {
+            text: '*📌 Usage:* .pair +9470604XXXX'
+        }, { quoted: msg });
+    }
+
+    try {
+        const url = `https://senu-md-v5.onrender.com/code?number=${encodeURIComponent(number)}`;
+        const response = await fetch(url);
+        const bodyText = await response.text();
+
+        console.log("🌐 API Response:", bodyText);
+
+        let result;
+        try {
+            result = JSON.parse(bodyText);
+        } catch (e) {
+            console.error("❌ JSON Parse Error:", e);
+            return await socket.sendMessage(sender, {
+                text: '❌ Invalid response from server. Please contact support.'
+            }, { quoted: msg });
+        }
+
+        if (!result || !result.code) {
+            return await socket.sendMessage(sender, {
+                text: '❌ Failed to retrieve pairing code. Please check the number.'
+            }, { quoted: msg });
+        }
+		await socket.sendMessage(m.chat, { react: { text: '🔑', key: msg.key } });
+        await socket.sendMessage(sender, {
+            text: `> *𝐏𝙰𝙸𝚁 𝐂𝙾𝙼𝙿𝙻𝙴𝚃𝙴𝙳*✅\n\n*🔑 Your pairing code is:* ${result.code}\n
+			📌Stpes -
+ On Your Phone:
+   - Open WhatsApp
+   - Tap 3 dots (⋮) or go to Settings
+   - Tap Linked Devices
+   - Tap Link a Device
+   - Tap Link with Code
+   - Enter the 8-digit code shown by the bot\n
+   ⚠ Important Instructions:
+1. ⏳ Pair this code within 1 minute.
+2. 🚫 Do not share this code with anyone.
+3. 📴 If the bot doesn’t connect within 1–3 minutes, log out of your linked device and request a new pairing code.
+> > SENU V5`
+        }, { quoted: msg });
+
+        await sleep(2000);
+
+        await socket.sendMessage(sender, {
+            text: `${result.code}\n> > SENU V5`
+        }, { quoted: msg });
+
+    } catch (err) {
+        console.error("❌ Pair Command Error:", err);
+        await socket.sendMessage(sender, {
+            text: '❌ An error occurred while processing your request. Please try again later.'
+        }, { quoted: msg });
+    }
+
+    break;
+}
+
 
 case 'deleteme': {
   // 'number' is the session number passed to setupCommandHandlers (sanitized in caller)
