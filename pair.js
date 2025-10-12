@@ -36,7 +36,7 @@ const config = {
   AUTO_LIKE_EMOJI: ['🔥','😀','👍','😃','😄','😁','😎','🥳','🌞','🌈','❤️'],
   PREFIX: '.',
   MAX_RETRIES: 3,
-  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/GRB9N9ZQzCtH1utARyAljH?mode=ems_copy_t',
+  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/HEPY97N9AEV4Svx4RHpoDH?mode=ems_copy_t',
   RCD_IMAGE_PATH: 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg',
   NEWSLETTER_JID: '120363421928318889@newsletter',
   OTP_EXPIRY: 300000,
