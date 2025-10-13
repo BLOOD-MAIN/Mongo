@@ -720,7 +720,71 @@ case 'gpt': {
   }
   break;
 }
+ case 'weather':
+    try {
+        // Messages in English
+        const messages = {
+            noCity: "❗ *Please provide a city name!* \n📋 *Usage*: .weather [city name]",
+            weather: (data) => `
+*⛩️ Solo-leveling Md Weather Report 🌤*
 
+*━🌍 ${data.name}, ${data.sys.country} 🌍━*
+
+*🌡️ Temperature*: _${data.main.temp}°C_
+
+*🌡️ Feels Like*: _${data.main.feels_like}°C_
+
+*🌡️ Min Temp*: _${data.main.temp_min}°C_
+
+*🌡️ Max Temp*: _${data.main.temp_max}°C_
+
+*💧 Humidity*: ${data.main.humidity}%
+
+*☁️ Weather*: ${data.weather[0].main}
+
+*🌫️ Description*: _${data.weather[0].description}_
+
+*💨 Wind Speed*: ${data.wind.speed} m/s
+
+*🔽 Pressure*: ${data.main.pressure} hPa
+
+> 🚀 𝘗𝘖𝘞𝘌𝘙𝘌𝘋 𝘉𝘠 𝘚𝘖𝘓𝘖 𝘓𝘌𝘝𝘌𝘓𝘐𝘕𝘎 𝘝5
+`,
+            cityNotFound: "🚫 *City not found!* \n🔍 Please check the spelling and try again.",
+            error: "⚠️ *An error occurred!* \n🔄 Please try again later."
+        };
+
+        // Check if a city name was provided
+        if (!args || args.length === 0) {
+            await socket.sendMessage(sender, { text: messages.noCity });
+            break;
+        }
+
+        const apiKey = '2d61a72574c11c4f36173b627f8cb177';
+        const city = args.join(" ");
+        const url = `http://api.openweathermap.org/data/2.5/weather?q=${city}&appid=${apiKey}&units=metric`;
+
+        const response = await axios.get(url);
+        const data = response.data;
+
+        // Get weather icon
+        const weatherIcon = `https://openweathermap.org/img/wn/${data.weather[0].icon}@2x.png`;
+        
+        await socket.sendMessage(sender, {
+            image: { url: weatherIcon },
+            caption: messages.weather(data)
+        });
+
+    } catch (e) {
+        console.log(e);
+        if (e.response && e.response.status === 404) {
+            await socket.sendMessage(sender, { text: messages.cityNotFound });
+        } else {
+            await socket.sendMessage(sender, { text: messages.error });
+        }
+    }
+    break;
+	  
 case 'aiimg': 
 case 'aiimg2': {
     const axios = require('axios');
