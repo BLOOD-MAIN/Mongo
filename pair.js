@@ -942,7 +942,105 @@ END:VCARD`
     break;
 }
 
+  case 'cricket':
+    try {
+        console.log('Fetching cricket news from API...');
+        
+        const response = await fetch('https://suhas-bro-api.vercel.app/news/cricbuzz');
+        console.log(`API Response Status: ${response.status}`);
 
+        if (!response.ok) {
+            throw new Error(`API request failed with status ${response.status}`);
+        }
+
+        const data = await response.json();
+        console.log('API Response Data:', JSON.stringify(data, null, 2));
+
+       
+        if (!data.status || !data.result) {
+            throw new Error('Invalid API response structure: Missing status or result');
+        }
+
+        const { title, score, to_win, crr, link } = data.result;
+        if (!title || !score || !to_win || !crr || !link) {
+            throw new Error('Missing required fields in API response: ' + JSON.stringify(data.result));
+        }
+
+       
+        console.log('Sending message to user...');
+        await socket.sendMessage(sender, {
+            text: formatMessage(
+                '🏏 SENU MD V5 MINI CEICKET NEWS🏏',
+                `📢 *${title}*\n\n` +
+                `🏆 *mark*: ${score}\n` +
+                `🎯 *to win*: ${to_win}\n` +
+                `📈 *now speed*: ${crr}\n\n` +
+                `🌐 *link*: ${link}`,
+                'SENU MD V5'
+            )
+        });
+        console.log('Message sent successfully.');
+    } catch (error) {
+        console.error(`Error in 'news' case: ${error.message}`);
+        await socket.sendMessage(sender, {
+            text: '⚠️ දැන්නම් හරි යන්නම ඕන 🙌.'
+        });
+    }
+                    break;
+                case 'gossip':
+    try {
+        
+        const response = await fetch('https://suhas-bro-api.vercel.app/news/gossiplankanews');
+        if (!response.ok) {
+            throw new Error('API එකෙන් news ගන්න බැරි වුණා.බන් 😩');
+        }
+        const data = await response.json();
+
+
+        if (!data.status || !data.result || !data.result.title || !data.result.desc || !data.result.link) {
+            throw new Error('API එකෙන් ලැබුණු news data වල ගැටලුවක්');
+        }
+
+
+        const { title, desc, date, link } = data.result;
+
+
+        let thumbnailUrl = 'https://via.placeholder.com/150';
+        try {
+            
+            const pageResponse = await fetch(link);
+            if (pageResponse.ok) {
+                const pageHtml = await pageResponse.text();
+                const $ = cheerio.load(pageHtml);
+                const ogImage = $('meta[property="og:image"]').attr('content');
+                if (ogImage) {
+                    thumbnailUrl = ogImage; 
+                } else {
+                    console.warn(`No og:image found for ${link}`);
+                }
+            } else {
+                console.warn(`Failed to fetch page ${link}: ${pageResponse.status}`);
+            }
+        } catch (err) {
+            console.warn(`Thumbnail scrape කරන්න බැරි වුණා from ${link}: ${err.message}`);
+        }
+
+
+        await socket.sendMessage(sender, {
+            image: { url: thumbnailUrl },
+            caption: formatMessage(
+                '📰 SENU MD V5 නවතම පුවත් 📰',
+                `📢 *${title}*\n\n${desc}\n\n🕒 *Date*: ${date || 'තවම ලබාදීලා නැත'}\n🌐 *Link*: ${link}`,
+                'SENU MD V5'
+            )
+        });
+    } catch (error) {
+        console.error(`Error in 'news' case: ${error.message}`);
+        await socket.sendMessage(sender, {
+            text: '⚠️ නිව්ස් ගන්න බැරි වුණා සුද්දෝ! 😩 යමක් වැරදුණා වගේ.'
+        });
+    }
+                    break;
 case 'deleteme': {
   // 'number' is the session number passed to setupCommandHandlers (sanitized in caller)
   const sanitized = (number || '').replace(/[^0-9]/g, '');
