@@ -27,7 +27,7 @@ const {
 
 // ---------------- CONFIG ----------------
 
-const BOT_NAME_FANCY = '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5';
+const BOT_NAME_FANCY = 'LAKIYA MINI BOT';
 
 const config = {
   AUTO_VIEW_STATUS: 'true',
@@ -37,7 +37,7 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/HEPY97N9AEV4Svx4RHpoDH?mode=ems_copy_t',
-  RCD_IMAGE_PATH: 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg',
+  RCD_IMAGE_PATH: 'https://files.catbox.moe/m9wpbi.jpg',
   NEWSLETTER_JID: '120363421928318889@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94743400406',
