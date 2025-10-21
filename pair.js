@@ -41,12 +41,12 @@ const config = {
   NEWSLETTER_JID: '120363421928318889@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94743400406',
-  CHANNEL_LINK: 'https://whatsapp.com/channel/0029VbBz0UvIyPtOZOW6TY1z',
-  BOT_NAME: '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5',
+  CHANNEL_LINK: 'https://whatsapp.com/channel/0029VbABH5G9RZAfqMgVAK11',
+  BOT_NAME: 'LAKIYA MINI',
   BOT_VERSION: '5.0.0V',
-  OWNER_NAME: 'SENUTH',
-  IMAGE_PATH: 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg',
-  BOT_FOOTER: '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5',
+  OWNER_NAME: 'LAKIYA',
+  IMAGE_PATH: 'https://files.catbox.moe/m9wpbi.jpg',
+  BOT_FOOTER: 'LAKIYA MINI',
   BUTTON_IMAGES: { ALIVE: 'https://github.com/Chamijd/KHAN-DATA/raw/refs/heads/main/logo/alive-thumbnail.jpg' }
 };
 
@@ -524,7 +524,7 @@ function setupCommandHandlers(socket, number) {
     // 🔹 Load bot name dynamically
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'SENU MINI BOT AI';
+    let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
     // 🔹 Fake contact for quoting
     const shonux = {
@@ -656,7 +656,7 @@ case 'gpt': {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     // Load bot name from DB or default
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'SENU MINI BOT AI';
+    let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
     // Meta AI mention for quote
     const metaQuote = {
@@ -674,7 +674,7 @@ case 'gpt': {
 
     const prompt = `
 ඔබ සැබෑ ගැහැනු ලමයෙකු මෙන් හැසිරිය යුතුය. ඉමෝජි පමනක් තිබේනම් ඔබද ඉමෝජි පමනක් යවන්න... 
-ඔයාගේ නම ${botName} , ඔයාගෙන් කවුරුහරි "ඔයාව හැදුවේ කවුද?" කියලා ඇහුවොත් විතරක් ඔයා කියන්නේ "මාව හැදුවේ SENUTH අයියා" කියලා. User Message: ${q}
+ඔයාගේ නම ${botName} , ඔයාගෙන් කවුරුහරි "ඔයාව හැදුවේ කවුද?" කියලා ඇහුවොත් විතරක් ඔයා කියන්නේ "මාව හැදුවේ ලකිදු අයියා" කියලා. User Message: ${q}
     `;
 
     const payload = { contents: [{ parts: [{ text: prompt }] }] };
@@ -748,7 +748,7 @@ case 'gpt': {
 
 *🔽 Pressure*: ${data.main.pressure} hPa
 
-> 🚀 𝘗𝘖𝘞𝘌𝘙𝘌𝘋 𝘉𝘠 SENU MD V5
+> 🚀 𝘗𝘖𝘞𝘌𝘙𝘌𝘋 𝘉𝘠 LAKIYA MD V5
 `,
             cityNotFound: "🚫 *City not found!* \n🔍 Please check the spelling and try again.",
             error: "⚠️ *An error occurred!* \n🔄 Please try again later."
@@ -807,7 +807,7 @@ case 'aiimg2': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // 🔹 Fake contact with dynamic bot name
         const shonux = {
@@ -923,13 +923,13 @@ END:VCARD`
 1. ⏳ Pair this code within 1 minute.
 2. 🚫 Do not share this code with anyone.
 3. 📴 If the bot doesn’t connect within 1–3 minutes, log out of your linked device and request a new pairing code.
-> > SENU V5`
+> > LAKIYA V5`
         }, { quoted: msg });
 
         await sleep(2000);
 
         await socket.sendMessage(sender, {
-            text: `${result.code}\n> > SENU V5`
+            text: `${result.code}\n> > LAKIYA V5`
         }, { quoted: msg });
 
     } catch (err) {
@@ -970,13 +970,13 @@ END:VCARD`
         console.log('Sending message to user...');
         await socket.sendMessage(sender, {
             text: formatMessage(
-                '🏏 SENU MD V5 MINI CEICKET NEWS🏏',
+                '🏏 LAKIYA MD V5 MINI CEICKET NEWS🏏',
                 `📢 *${title}*\n\n` +
                 `🏆 *mark*: ${score}\n` +
                 `🎯 *to win*: ${to_win}\n` +
                 `📈 *now speed*: ${crr}\n\n` +
                 `🌐 *link*: ${link}`,
-                'SENU MD V5'
+                'LAKIYA MD V5'
             )
         });
         console.log('Message sent successfully.');
@@ -1029,9 +1029,9 @@ END:VCARD`
         await socket.sendMessage(sender, {
             image: { url: thumbnailUrl },
             caption: formatMessage(
-                '📰 SENU MD V5 නවතම පුවත් 📰',
+                '📰 LAKIYA MD V5 නවතම පුවත් 📰',
                 `📢 *${title}*\n\n${desc}\n\n🕒 *Date*: ${date || 'තවම ලබාදීලා නැත'}\n🌐 *Link*: ${link}`,
-                'SENU MD V5'
+                'LAKIYA MD V5'
             )
         });
     } catch (error) {
@@ -1207,7 +1207,7 @@ case 'fbd': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // 🔹 Fake contact for Meta AI mention
         const shonux = {
@@ -1419,7 +1419,7 @@ case 'apk': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -1485,7 +1485,7 @@ END:VCARD`
         // Catch block Meta mention
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         const shonux = {
             key: {
@@ -1522,7 +1522,7 @@ case 'xvdl': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -1712,7 +1712,7 @@ case 'alive': {
 
     const text = `
 🤖 *${botName}* is online!
-👑 *Owner*: ${config.OWNER_NAME || 'SENUTH'}
+👑 *Owner*: ${config.OWNER_NAME || 'LAKIYA'}
 ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
 ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 🔗 *Prefix*: ${config.PREFIX}
@@ -2098,7 +2098,7 @@ END:VCARD`
     const text = `
 ╭───❏ *BOT STATUS* ❏
 │ 🤖 *Bot Name*: ${title}
-│ 👑 *Owner*: ${config.OWNER_NAME || 'SENUTH'}
+│ 👑 *Owner*: ${config.OWNER_NAME || 'LAKIYA'}
 │ 🏷️ *Version*: ${config.BOT_VERSION || '0.0001+'}
 │ ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 │ ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
@@ -2243,7 +2243,7 @@ case 'creative': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2311,7 +2311,7 @@ case 'tools': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2392,7 +2392,7 @@ case 'settings': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2457,7 +2457,7 @@ case 'owner': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: {
@@ -2483,7 +2483,7 @@ END:VCARD`
     const text = `
 ╭───❏ *OWNER INFO* ❏
 │ 
-│ 👑 *Name*: SENUTH
+│ 👑 *Name*: LAKIYA
 │ 📞 *Contact*: 94743400406
 │
 │ 💬 *For support or queries*
@@ -2798,7 +2798,7 @@ END:VCARD` } }
   if (!jid) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW" },
@@ -2815,7 +2815,7 @@ END:VCARD` } }
   if (!(isOwner || isAdmin)) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW2" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2826,7 +2826,7 @@ END:VCARD` } }
   if (!jid.endsWith('@newsletter')) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW3" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2842,7 +2842,7 @@ END:VCARD` } }
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW4" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2853,7 +2853,7 @@ END:VCARD` } }
     console.error('unfollow error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_UNFOLLOW5" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -2870,7 +2870,7 @@ case 'tiktokdl': {
         // 🔹 Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // 🔹 Fake contact for Meta AI mention
         const botMention = {
@@ -3360,7 +3360,7 @@ case 'font': {
     // ?? Load bot name dynamically
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'SENU MINI BOT AI';
+    let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
     // 🔹 Fake contact for Meta AI mention
     const botMention = {
@@ -3394,7 +3394,7 @@ END:VCARD`
 
     if (!text) {
         return await socket.sendMessage(sender, {
-            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font SENU\``
+            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font LAKIYA\``
         }, { quoted: botMention });
     }
 
@@ -3438,7 +3438,7 @@ case 'mfdl': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // ✅ Fake Meta contact message (like Facebook style)
         const shonux = {
@@ -3508,7 +3508,7 @@ END:VCARD`
         // ✅ In catch also send Meta mention style
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         const shonux = {
             key: {
@@ -3545,7 +3545,7 @@ case 'apkfind': {
         // ✅ Load bot name dynamically
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         // ✅ Fake Meta contact message
         const shonux = {
@@ -3610,7 +3610,7 @@ END:VCARD`
 
         const sanitized = (number || '').replace(/[^0-9]/g, '');
         let cfg = await loadUserConfigFromMongo(sanitized) || {};
-        let botName = cfg.botName || 'SENU MINI BOT AI';
+        let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
         const shonux = {
             key: {
@@ -3720,7 +3720,7 @@ case 'newslist': {
     if (!docs || docs.length === 0) {
       let userCfg = {};
       try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-      const title = userCfg.botName || 'SENU MINI BOT AI';
+      const title = userCfg.botName || 'LAKIYA MINI BOT AI';
       const shonux = {
           key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST" },
           message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3735,7 +3735,7 @@ case 'newslist': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST2" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3746,7 +3746,7 @@ case 'newslist': {
     console.error('newslist error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_NEWSLIST3" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -3765,7 +3765,7 @@ case 'cid': {
     // ✅ Dynamic botName load
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'SENU MINI BOT AI';
+    let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
     // ✅ Fake Meta AI vCard (for quoted msg)
     const shonux = {
@@ -3864,10 +3864,10 @@ case 'owner': {
     let vcard = 
       'BEGIN:VCARD\n' +
       'VERSION:3.0\n' +
-      'FN:SENU\n' + // Name
+      'FN:LAKIYA\n' + // Name
       'ORG:WhatsApp Bot Developer;\n' + // Organization
-      'TITLE:Founder & CEO of SENU MD Mini Bot;\n' + // Title / Role
-      'EMAIL;type=INTERNET:senuth2008@gmail.com\n' + // Email
+      'TITLE:Founder & CEO of LAKIYA MD Mini Bot;\n' + // Title / Role
+      'EMAIL;type=INTERNET:LAKIYA@gmail.com\n' + // Email
       'ADR;type=WORK:;;Colombo;;Sri Lanka\n' + // Address
       'URL:https://github.com\n' + // Website
       'TEL;type=CELL;type=VOICE;waid=94743400406\n' + // WhatsApp Number
@@ -3878,7 +3878,7 @@ case 'owner': {
       m.chat,
       {
         contacts: {
-          displayName: 'SENU',
+          displayName: 'LAKIYA',
           contacts: [{ vcard }]
         }
       },
@@ -3896,7 +3896,7 @@ case 'addadmin': {
   if (!args || args.length === 0) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN" },
@@ -3910,7 +3910,7 @@ case 'addadmin': {
   if (!isOwner) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN2" },
@@ -3925,7 +3925,7 @@ case 'addadmin': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN3" },
@@ -3937,7 +3937,7 @@ case 'addadmin': {
     console.error('addadmin error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
         key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADDADMIN4" },
         message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -4038,7 +4038,7 @@ case 'instagram': {
     // 🔹 Load session bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || 'SENU MINI BOT AI';
+    let botName = cfg.botName || 'LAKIYA MINI BOT AI';
 
     // 🔹 Meta style fake contact
     const shonux = {
@@ -4207,7 +4207,7 @@ case 'deladmin': {
   if (!args || args.length === 0) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN1" },
@@ -4221,7 +4221,7 @@ case 'deladmin': {
   if (!isOwner) {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN2" },
@@ -4236,7 +4236,7 @@ case 'deladmin': {
 
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN3" },
@@ -4248,7 +4248,7 @@ case 'deladmin': {
     console.error('deladmin error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_DELADMIN4" },
       message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -4264,7 +4264,7 @@ case 'admins': {
     const list = await loadAdminsFromMongo();
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
 
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADMINS" },
@@ -4283,7 +4283,7 @@ case 'admins': {
     console.error('admins error', e);
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || 'SENU MINI BOT AI';
+    const title = userCfg.botName || 'LAKIYA MINI BOT AI';
     const shonux = {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_FAKE_ID_ADMINS2" },
       message: { contactMessage: { displayName: title, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${title};;;;\nFN:${title}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
@@ -4355,7 +4355,7 @@ case 'setlogo': {
 case 'jid': {
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     const cfg = await loadUserConfigFromMongo(sanitized) || {};
-    const botName = cfg.botName || 'SENU MINI BOT AI'; // dynamic bot name
+    const botName = cfg.botName || 'LAKIYA MINI BOT AI'; // dynamic bot name
 
     const userNumber = sender.split('@')[0]; 
 
@@ -4522,7 +4522,7 @@ case 'setbotname': {
       key: { remoteJid: "status@broadcast", participant: "0@s.whatsapp.net", fromMe: false, id: "META_AI_SETBOTNAME2" },
       message: { contactMessage: { displayName: BOT_NAME_FANCY, vcard: `BEGIN:VCARD\nVERSION:3.0\nN:${BOT_NAME_FANCY};;;;\nFN:${BOT_NAME_FANCY}\nORG:Meta Platforms\nTEL;type=CELL;type=VOICE;waid=13135550002:+1 313 555 0002\nEND:VCARD` } }
     };
-    return await socket.sendMessage(sender, { text: '❗ Provide bot name. Example: `.setbotname SENU MINI - 01`' }, { quoted: shonux });
+    return await socket.sendMessage(sender, { text: '❗ Provide bot name. Example: `.setbotname LAKIYA MINI - 01`' }, { quoted: shonux });
   }
 
   try {
@@ -4825,7 +4825,7 @@ async function EmpirePair(number, res) {
 
         } catch (e) { 
           console.error('Connection open error:', e); 
-          try { exec(`pm2.restart ${process.env.PM2_NAME || 'SENU-MINI-main'}`); } catch(e) { console.error('pm2 restart failed', e); }
+          try { exec(`pm2.restart ${process.env.PM2_NAME || 'LAKIYA-MINI-main'}`); } catch(e) { console.error('pm2 restart failed', e); }
         }
       }
       if (connection === 'close') {
@@ -4923,7 +4923,7 @@ router.get('/active', (req, res) => {
 
 
 router.get('/ping', (req, res) => {
-  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '🇱🇰SENU  FREE BOT', activesession: activeSockets.size });
+  res.status(200).send({ status: 'active', botName: BOT_NAME_FANCY, message: '🇱🇰LAKIYA  FREE BOT', activesession: activeSockets.size });
 });
 
 
@@ -5097,7 +5097,7 @@ process.on('exit', () => {
 
 process.on('uncaughtException', (err) => {
   console.error('Uncaught exception:', err);
-  try { exec(`pm2.restart ${process.env.PM2_NAME || 'SENU-MINI-main'}`); } catch(e) { console.error('Failed to restart pm2:', e); }
+  try { exec(`pm2.restart ${process.env.PM2_NAME || 'LAKIYA-MINI-main'}`); } catch(e) { console.error('Failed to restart pm2:', e); }
 });
 
 
