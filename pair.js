@@ -27,7 +27,7 @@ const {
 
 // ---------------- CONFIG ----------------
 
-const BOT_NAME_FANCY = 'LAKIYA MINI BOT';
+const BOT_NAME_FANCY = 'LAKIYA MINI';
 
 const config = {
   AUTO_VIEW_STATUS: 'true',
@@ -37,10 +37,10 @@ const config = {
   PREFIX: '.',
   MAX_RETRIES: 3,
   GROUP_INVITE_LINK: 'https://chat.whatsapp.com/HEPY97N9AEV4Svx4RHpoDH?mode=ems_copy_t',
-  RCD_IMAGE_PATH: 'https://files.catbox.moe/m9wpbi.jpg',
+  RCD_IMAGE_PATH: 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg',
   NEWSLETTER_JID: '120363421928318889@newsletter',
   OTP_EXPIRY: 300000,
-  OWNER_NUMBER: process.env.OWNER_NUMBER || '94743400406',
+  OWNER_NUMBER: process.env.OWNER_NUMBER || '94721164497',
   CHANNEL_LINK: 'https://whatsapp.com/channel/0029VbABH5G9RZAfqMgVAK11',
   BOT_NAME: 'LAKIYA MINI',
   BOT_VERSION: '5.0.0V',
@@ -1873,7 +1873,7 @@ case 'song': {
     // load bot name
     const sanitized = (number || '').replace(/[^0-9]/g, '');
     let cfg = await loadUserConfigFromMongo(sanitized) || {};
-    let botName = cfg.botName || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5';
+    let botName = cfg.botName || 'LAKIYA MINI';
 
     // fake contact for quoted card
     const botMention = {
@@ -2071,7 +2071,7 @@ case 'menu': {
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; }
     catch(e){ console.warn('menu: failed to load config', e); userCfg = {}; }
 
-    const title = userCfg.botName || '💖 𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5 💖';
+    const title = userCfg.botName || '💖 LAKIYA MINI 💖';
 
     // 🔹 Fake contact for Meta AI mention
     const shonux = {
@@ -2127,7 +2127,7 @@ END:VCARD`
 │ 🤖 *BOT INFO*
 │ ${config.PREFIX}alive
 │
-> © ${config.BOT_FOOTER || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5'}
+> © ${config.BOT_FOOTER || 'LAKIYA MINI'}
 `.trim();
 
     const buttons = [
@@ -2138,7 +2138,7 @@ END:VCARD`
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 OWNER" }, type: 1 }
     ];
 
-    const defaultImg = 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg';
+    const defaultImg = 'https://files.catbox.moe/m9wpbi.jpg';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -2151,7 +2151,7 @@ END:VCARD`
     await socket.sendMessage(sender, {
       image: imagePayload,
       caption: text,
-      footer: "🔥 𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5 🔥",
+      footer: "🔥 LAKIYA MINI 🔥",
       buttons,
       headerType: 4
     }, { quoted: shonux });
@@ -2170,7 +2170,7 @@ case 'download': {
   try {
     let userCfg = {};
     try { if (number && typeof loadUserConfigFromMongo === 'function') userCfg = await loadUserConfigFromMongo((number || '').replace(/[^0-9]/g, '')) || {}; } catch(e){ userCfg = {}; }
-    const title = userCfg.botName || '𝗦𝗘𝗡𝗨 𝗠𝗗 𝗩5';
+    const title = userCfg.botName || 'LAKIYA MINI';
 
     const shonux = {
         key: {
@@ -2484,7 +2484,7 @@ END:VCARD`
 ╭───❏ *OWNER INFO* ❏
 │ 
 │ 👑 *Name*: LAKIYA
-│ 📞 *Contact*: 94743400406
+│ 📞 *Contact*: +94 72 116 4497
 │
 │ 💬 *For support or queries*
 │ contact the owner directly
@@ -3870,8 +3870,8 @@ case 'owner': {
       'EMAIL;type=INTERNET:LAKIYA@gmail.com\n' + // Email
       'ADR;type=WORK:;;Colombo;;Sri Lanka\n' + // Address
       'URL:https://github.com\n' + // Website
-      'TEL;type=CELL;type=VOICE;waid=94743400406\n' + // WhatsApp Number
-      'TEL;type=CELL;type=VOICE;waid=94743400406\n' + // Second Number (Owner)
+      'TEL;type=CELL;type=VOICE;waid=94721164497\n' + // WhatsApp Number
+      'TEL;type=CELL;type=VOICE;waid=94721164497\n' + // Second Number (Owner)
       'END:VCARD';
 
     await conn.sendMessage(
