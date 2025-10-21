@@ -52,7 +52,7 @@ const config = {
 
 // ---------------- MONGO SETUP ----------------
 
-const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dtec_db_user:JJ4r8IAJEh8Wvcbf@cluster0.gsn3g9w.mongodb.net//';
+const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dileepa:dileepa123@minibot.upglk0f.mongodb.net';
 const MONGO_DB = process.env.MONGO_DB || 'CHAMA_MINI_TEDT';
 
 let mongoClient, mongoDB;
