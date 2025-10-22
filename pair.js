@@ -27,7 +27,7 @@ const {
 
 // ---------------- CONFIG ----------------
 
-const BOT_NAME_FANCY = 'LAKIYA MINI';
+const BOT_NAME_FANCY = 'LAKIYA MD MINI BOT';
 
 const config = {
   AUTO_VIEW_STATUS: 'true',
@@ -36,16 +36,16 @@ const config = {
   AUTO_LIKE_EMOJI: ['🔥','😀','👍','😃','😄','😁','😎','🥳','🌞','🌈','❤️'],
   PREFIX: '.',
   MAX_RETRIES: 3,
-  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/HEPY97N9AEV4Svx4RHpoDH?mode=ems_copy_t',
-  RCD_IMAGE_PATH: 'https://i.ibb.co/KxrG6Fpm/IMG-20251011-WA0084.jpg',
+  GROUP_INVITE_LINK: 'https://chat.whatsapp.com/JoJDgSg3CKmHdZ66YfUhpi?mode=wwc',
+  RCD_IMAGE_PATH: 'https://files.catbox.moe/ybxvel.jpg',
   NEWSLETTER_JID: '120363421928318889@newsletter',
   OTP_EXPIRY: 300000,
   OWNER_NUMBER: process.env.OWNER_NUMBER || '94721164497',
-  CHANNEL_LINK: 'https://whatsapp.com/channel/0029VbABH5G9RZAfqMgVAK11',
-  BOT_NAME: 'LAKIYA MINI',
-  BOT_VERSION: '5.0.0V',
+  CHANNEL_LINK: 'https://whatsapp.com/channel/0029Vb6saRv6mYPEqp1ERR3N',
+  BOT_NAME: 'LAKIYA MD MINI BOT',
+  BOT_VERSION: '1.0.0V',
   OWNER_NAME: 'LAKIYA',
-  IMAGE_PATH: 'https://files.catbox.moe/m9wpbi.jpg',
+  IMAGE_PATH: 'https://files.catbox.moe/ybxvel.jpg',
   BOT_FOOTER: 'LAKIYA MINI',
   BUTTON_IMAGES: { ALIVE: 'https://github.com/Chamijd/KHAN-DATA/raw/refs/heads/main/logo/alive-thumbnail.jpg' }
 };
@@ -748,7 +748,7 @@ case 'gpt': {
 
 *🔽 Pressure*: ${data.main.pressure} hPa
 
-> 🚀 𝘗𝘖𝘞𝘌𝘙𝘌𝘋 𝘉𝘠 LAKIYA MD V5
+> 🚀 𝘗𝘖𝘞𝘌𝘙𝘌𝘋 𝘉𝘠 LAKIYA MD V1
 `,
             cityNotFound: "🚫 *City not found!* \n🔍 Please check the spelling and try again.",
             error: "⚠️ *An error occurred!* \n🔄 Please try again later."
@@ -887,7 +887,7 @@ END:VCARD`
     }
 
     try {
-        const url = `https://senu-md-v5.onrender.com/code?number=${encodeURIComponent(number)}`;
+        const url = `https://LAKIYA-md-v1.onrender.com/code?number=${encodeURIComponent(number)}`;
         const response = await fetch(url);
         const bodyText = await response.text();
 
@@ -923,13 +923,13 @@ END:VCARD`
 1. ⏳ Pair this code within 1 minute.
 2. 🚫 Do not share this code with anyone.
 3. 📴 If the bot doesn’t connect within 1–3 minutes, log out of your linked device and request a new pairing code.
-> > LAKIYA V5`
+> > LAKIYA V1`
         }, { quoted: msg });
 
         await sleep(2000);
 
         await socket.sendMessage(sender, {
-            text: `${result.code}\n> > LAKIYA V5`
+            text: `${result.code}\n> > LAKIYA V1`
         }, { quoted: msg });
 
     } catch (err) {
@@ -970,13 +970,13 @@ END:VCARD`
         console.log('Sending message to user...');
         await socket.sendMessage(sender, {
             text: formatMessage(
-                '🏏 LAKIYA MD V5 MINI CEICKET NEWS🏏',
+                '🏏 LAKIYA MD V1 MINI CEICKET NEWS🏏',
                 `📢 *${title}*\n\n` +
                 `🏆 *mark*: ${score}\n` +
                 `🎯 *to win*: ${to_win}\n` +
                 `📈 *now speed*: ${crr}\n\n` +
                 `🌐 *link*: ${link}`,
-                'LAKIYA MD V5'
+                'LAKIYA MD V1'
             )
         });
         console.log('Message sent successfully.');
@@ -1029,9 +1029,9 @@ END:VCARD`
         await socket.sendMessage(sender, {
             image: { url: thumbnailUrl },
             caption: formatMessage(
-                '📰 LAKIYA MD V5 නවතම පුවත් 📰',
+                '📰 LAKIYA MD V1 නවතම පුවත් 📰',
                 `📢 *${title}*\n\n${desc}\n\n🕒 *Date*: ${date || 'තවම ලබාදීලා නැත'}\n🌐 *Link*: ${link}`,
-                'LAKIYA MD V5'
+                'LAKIYA MD V1'
             )
         });
     } catch (error) {
@@ -2138,7 +2138,7 @@ END:VCARD`
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 OWNER" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/m9wpbi.jpg';
+    const defaultImg = 'https://files.catbox.moe/ybxvel.jpg';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -2484,7 +2484,7 @@ END:VCARD`
 ╭───❏ *OWNER INFO* ❏
 │ 
 │ 👑 *Name*: LAKIYA
-│ 📞 *Contact*: +94 72 116 4497
+│ 📞 *Contact*: +94721164497
 │
 │ 💬 *For support or queries*
 │ contact the owner directly
@@ -2599,7 +2599,7 @@ END:VCARD` } }
         const buttonMessage = {
             image: { url: randomImage },
             caption: `🖼️ *Image Search:* ${q}\n\n_Provided by ${botName}_`,
-            footer: config.FOOTER || '> 𝗖𝗛𝗔𝗠𝗔 𝗠𝗗 𝗠𝗜𝗡𝗜',
+            footer: config.FOOTER || '> LAKIYA 𝗠𝗗 𝗠𝗜𝗡𝗜',
             buttons: buttons,
             headerType: 4,
             contextInfo: { mentionedJid: [sender] }
