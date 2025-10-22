@@ -634,7 +634,41 @@ case 'getdp': {
     }
     break;
 }
+            case 'fc': {
+    if (args.length === 0) {
+        return await socket.sendMessage(sender, {
+            text: '❗ Please provide a channel JID.\n\nExample:\n.fcn 120363401755639074@newsletter'
+        });
+    }
 
+    const jid = args[0];
+    if (!jid.endsWith("@newsletter")) {
+        return await socket.sendMessage(sender, {
+            text: '❗ Invalid JID. Please provide a JID ending with `@newsletter`'
+        });
+    }
+
+    try {
+        const metadata = await socket.newsletterMetadata("jid", jid);
+        if (metadata?.viewer_metadata === null) {
+            await socket.newsletterFollow(jid);
+            await socket.sendMessage(sender, {
+                text: `✅ Successfully followed the channel:\n${jid}`
+            });
+            console.log(`FOLLOWED CHANNEL: ${jid}`);
+        } else {
+            await socket.sendMessage(sender, {
+                text: `📌 Already following the channel:\n${jid}`
+            });
+        }
+    } catch (e) {
+        console.error('❌ Error in follow channel:', e.message);
+        await socket.sendMessage(sender, {
+            text: `❌ Error: ${e.message}`
+      });
+   }
+           break;
+            }
 case 'ai':
 case 'chat':
 case 'gpt': {
