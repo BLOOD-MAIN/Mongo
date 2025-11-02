@@ -2422,7 +2422,7 @@ case 'alive': {
 
     const text = `
 🤖 *${botName}* is online!
-👑 *Owner*: ${config.OWNER_NAME || 'LAKIYA'}
+👑 *Owner*: ${config.OWNER_NAME || 'YASAS'}
 ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
 ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 🔗 *Prefix*: ${config.PREFIX}
@@ -2808,7 +2808,7 @@ END:VCARD`
     const text = `
 ╭───❏ *BOT STATUS* ❏
 │ 🤖 *Bot Name*: ${title}
-│ 👑 *Owner*: ${config.OWNER_NAME || 'LAKIYA'}
+│ 👑 *Owner*: ${config.OWNER_NAME || 'YASAS'}
 │ 🏷️ *Version*: ${config.BOT_VERSION || '0.0001+'}
 │ ☁️ *Platform*: ${process.env.PLATFORM || 'Heroku'}
 │ ⏳ *Uptime*: ${hours}h ${minutes}m ${seconds}s
@@ -2825,7 +2825,7 @@ END:VCARD`
       { buttonId: `${config.PREFIX}owner`, buttonText: { displayText: "👑 OWNER" }, type: 1 }
     ];
 
-    const defaultImg = 'https://files.catbox.moe/vjyeby.jpg';
+    const defaultImg = 'https://files.catbox.moe/m9wpbi.jpg';
     const useLogo = userCfg.logo || defaultImg;
 
     // build image payload (url or buffer)
@@ -4124,7 +4124,7 @@ END:VCARD`
 
     if (!text) {
         return await socket.sendMessage(sender, {
-            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font LAKIYA\``
+            text: `❎ *Please provide text to convert into fancy fonts.*\n\n📌 *Example:* \`.font yasas\``
         }, { quoted: botMention });
     }
 
