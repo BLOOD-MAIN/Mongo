@@ -53,7 +53,7 @@ const config = {
 // ---------------- MONGO SETUP ----------------
 
 const MONGO_URI = process.env.MONGO_URI || 'mongodb+srv://dileepa:dileepa@minibot.upglk0f.mongodb.net/';
-const MONGO_DB = process.env.MONGO_DB || 'YASAS_DILEEPA';
+const MONGO_DB = process.env.MONGO_DB || 'CHAMA_MINI_TEDT';
 
 let mongoClient, mongoDB;
 let sessionsCol, numbersCol, adminsCol, newsletterCol, configsCol, newsletterReactsCol;
